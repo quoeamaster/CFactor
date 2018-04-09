@@ -106,4 +106,6 @@ func convertStringToReader() {
 
 /* ----------- encode ------------- */
 
+func TestTOMLPackageWrite(t *testing.T) {
 
+}
