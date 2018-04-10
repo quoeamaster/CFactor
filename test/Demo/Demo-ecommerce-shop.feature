@@ -16,3 +16,9 @@ Feature: Product basket
     Then I should have 2 products in the basket
     And the overall basket price should be £20.0
 
+  Scenario: Buying two products less £10
+    Given there is a "Jedi Lightsaber", which costs £5.0
+    When I add the "Jedi Lightsaber" to the basket
+    Then I should have 1 products in the basket
+    And the overall basket price should be £9.0
+
