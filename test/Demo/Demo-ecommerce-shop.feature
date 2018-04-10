@@ -21,4 +21,3 @@ Feature: Product basket
     When I add the "Jedi Lightsaber" to the basket
     Then I should have 1 products in the basket
     And the overall basket price should be £9.0
-

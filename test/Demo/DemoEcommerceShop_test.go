@@ -1,9 +1,11 @@
 package Demo
 
 import (
-	"github.com/DATA-DOG/godog"
 	"fmt"
+	"github.com/DATA-DOG/godog"
 )
+
+/* "github.com/stretchr/testify/assert" - if you need Assert API */
 
 var inventory *Inventory
 var cart *ShoppingCart
@@ -32,8 +34,9 @@ func iAddTheToTheBasket(nameOfProduct string) error {
 func iShouldHaveProductsInTheBasket(counts int) error {
 	itemLen := len(cart.Items)
 	if counts != itemLen {
-		fmt.Printf("the cart's item count is NOT equals to the given count~ Expected %d, Instead got %d\n", itemLen, counts)
-		return godog.ErrPending
+		//fmt.Printf("the cart's item count is NOT equals to the given count~ Expected %d, Instead got %d\n", itemLen, counts)
+		//return godog.ErrPending
+		return fmt.Errorf("the cart's item count is NOT equals to the given count~ Expected %d, Instead got %d\n", counts, itemLen)
 	}
 	return nil
 }
@@ -41,8 +44,9 @@ func iShouldHaveProductsInTheBasket(counts int) error {
 func theOverallBasketPriceShouldBe(estimatedTrx float32) error {
 	calTrx := cart.CalculateTrxAmount()
 	if estimatedTrx != calTrx {
-		fmt.Printf("the estimated trx amount does NOT match with the calculated trx amount~ Expected %v, Instead got %v\n", calTrx, estimatedTrx)
-		return godog.ErrPending
+		//fmt.Printf("the estimated trx amount does NOT match with the calculated trx amount~ Expected %v, Instead got %v\n", calTrx, estimatedTrx)
+		//return godog.ErrPending
+		return fmt.Errorf("the estimated trx amount does NOT match with the calculated trx amount~ Expected %v, Instead got %v\n", estimatedTrx, calTrx )
 	}
 	return nil
 }
