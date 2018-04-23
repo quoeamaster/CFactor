@@ -22,3 +22,5 @@ Feature: TOML Access (Basic use cases)
     Then I should be able to access the fields from this toml file
     And the value for field "version" is "1.1.0a"
     And the value for field "author.firstName" is "Jason"
+    And the integer value for field "workingHoursDay" is 8
+    And the integer value for field "author.age" is 25

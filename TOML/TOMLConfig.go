@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"CFactor/common"
 	"strings"
+	"runtime"
 )
 
 type TOMLConfigImpl struct {
@@ -28,7 +29,18 @@ func NewTOMLConfigImpl(name string, structType reflect.Type) TOMLConfigImpl {
  *
  *	return => pointer to the populated instance (created from the Type)
  */
-func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (interface{}, error) {
+func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err error) {
+	// defer
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(runtime.Error); ok {
+				// runtime error, can't help in most cases
+				panic(r)
+			}
+			err = r.(error)
+		}
+	}()
+
 	// load the contents of the given "name"
 	bBytes, err := common.LoadFile(t.Name)
 
@@ -58,4 +70,11 @@ func (t *TOMLConfigImpl) IsFieldStringValueMatched(object interface{}, fieldName
 	return false
 }
 
+func (t *TOMLConfigImpl) IsFieldIntValueMatched(object interface{}, fieldName string, value int) bool {
+	ok, sVal := common.GetIntValueByTomlField(object, t.StructType, fieldName)
 
+	if ok && int64(value) == sVal {
+		return true
+	}
+	return false
+}

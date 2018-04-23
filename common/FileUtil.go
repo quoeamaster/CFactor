@@ -8,7 +8,7 @@ import (
 /**
  *	method to simply load a file from the given "name"
  */
-func LoadFile(name string) ([]byte, error) {
+func LoadFile(name string) (data []byte, err error) {
 	return ioutil.ReadFile(name)
 }
 

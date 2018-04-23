@@ -32,6 +32,7 @@ func loadToml(name string) error {
 		return fmt.Errorf("Error in loading the TOML file. %v\n", err)
 	}
 	config = reflect.ValueOf(cfgInterface).Elem().Interface().(DemoTOMLConfig)
+	fmt.Println("\t#",config.String())
 
 	return nil
 }
@@ -48,9 +49,17 @@ func checkFieldValue(field, value string) error {
 	return fmt.Errorf("field [%v] does not matches with {%v}", field, value)
 }
 
+func theIntegerValueForFieldIs(field string, value int) error {
+	if configReader.IsFieldIntValueMatched(config, field, value) {
+		return nil
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}", field, value)
+}
+
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^there is a TOML in the current folder named "([^"]*)"$`, foundATomlFileLocation)
 	s.Step(`^I load the TOML file named "([^"]*)"$`, loadToml)
 	s.Step(`^I should be able to access the fields from this toml file$`, iShouldBeAbleToAccessTheFieldsFromThisTomlFile)
 	s.Step(`^the value for field "([^"]*)" is "([^"]*)"$`, checkFieldValue)
+	s.Step(`^the integer value for field "([^"]*)" is (\d+)$`, theIntegerValueForFieldIs)
 }

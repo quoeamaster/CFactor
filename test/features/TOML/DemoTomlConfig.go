@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"errors"
+	"strconv"
 )
 
 /*
@@ -26,6 +27,8 @@ type DemoTOMLConfig struct {
 	Author Author `toml:"author" additional:"parent" set:"SetAuthor"`
 	//FirstName string `toml:"author.firstName"`	// easiest way to implement "hierarchy"
 
+	WorkingHoursDay int `toml:"workingHoursDay"`
+
 	// TODO: more to come...
 }
 
@@ -33,6 +36,7 @@ type DemoTOMLConfig struct {
 type Author struct {
 	FirstName string `toml:"author.firstName"`
 	LastName string `toml:"author.lastName"`
+	Age int `toml:"author.age"`
 }
 
 
@@ -40,7 +44,8 @@ type Author struct {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (d *DemoTOMLConfig) String() string {
-	s := fmt.Sprintf("Version => %v, Author [struct] => %v", d.Version, d.Author.String())
+	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Author [struct] => %v",
+		d.Version, d.WorkingHoursDay, d.Author.String())
 
 	return s
 }
@@ -48,7 +53,7 @@ func (d *DemoTOMLConfig) String() string {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (a *Author) String() string {
-	s := fmt.Sprintf("{FirstName => %v; LastName => %v}", a.FirstName, a.LastName)
+	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v}", a.FirstName, a.LastName, a.Age)
 
 	return s
 }
@@ -71,6 +76,13 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 		}
 		if len(params["author.lastName"])>0 {
 			author.LastName = params["author.lastName"]
+		}
+		if len(params["author.age"])>0 {
+			iVal, cErr := strconv.Atoi(params["author.age"])
+			if cErr != nil {
+				panic(errors.New(fmt.Sprintf("author.age should be of type integer, given value => [%v]", params["author.age"])))
+			}
+			author.Age = iVal
 		}
 		d.Author = author
 

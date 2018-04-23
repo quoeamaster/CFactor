@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strings"
 	"errors"
+	"strconv"
+	"fmt"
 )
 
 const CONFIG_TYPE_TOML = "CFG_T"
@@ -15,6 +17,9 @@ const TAG_JSON = "json"
 const TAG_ADDITIONAL = "additional"
 const TAG_SET = "set"
 const TAG_GET = "get"
+
+const TYPE_INT = "int"
+const TYPE_STRING = "string"
 
 type TagStructure struct {
 	CType string
@@ -76,10 +81,14 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 	v = strings.Replace(v, "\"", "", -1)
 
 	for i:=0; i<fLen; i++ {
-		tags := objectType.Field(i).Tag
+		typeField := objectType.Field(i)
+		tags := typeField.Tag
 
 		if strings.Compare(tags.Get(TAG_ADDITIONAL), CONFIG_TYPE_PARENT) == 0 {
-			// do not work at the moment, as the reflected value is not a real object instance... (recursively populate...)
+			/*
+			 *	as the reflected value is not a real object instance...
+			 *	NEED to use alternatives (recursively populate...)
+			 */
 			structObj := NewStructPointerByType(objVal.Field(i).Type())
 			paramsMap := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), k, v)
 
@@ -100,13 +109,12 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 		} else {
 			if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
 				// ### reflect.ValueOf(&r).Elem().Field(i).SetInt( i64 )
-				objVal.Field(i).SetString(v)
+				setValueByDataType(typeField.Type.String(), objVal.Field(i), k, v)
 				break
 			}	// end -- if (k matched)
 		}	// end -- if (additional_info == parent)
 	}	// end -- for (fLen)
 }
-
 func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, k, v string) (map[string]string) {
 	// strip the " symbol if any
 	v = strings.Replace(v, "\"", "", -1)
@@ -136,6 +144,25 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
 	return p
 }
 
+/**
+ *	handy method to handle set-value operation based on dataType (sharable by TOML and JSON config)
+ */
+func setValueByDataType(dataType string, targetField reflect.Value, k, v string) {
+	if strings.Compare(dataType, TYPE_INT)==0 {
+		iVal, cErr := strconv.Atoi(v)
+		if cErr != nil {
+			panic(errors.New(fmt.Sprintf("cannot convert [%v] to int type for field [%v]", v, k)))
+		}
+		targetField.SetInt(int64(iVal))
+	} else if strings.Compare(dataType, TYPE_STRING)==0 {
+		targetField.SetString(v)
+	} else {
+		panic(errors.New(fmt.Sprintf("unknown type / value for field [%v] = [%v]", k, v)))
+	}
+}
+
+
+
 
 func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, string) {
 	fLen := objectType.NumField()
@@ -146,8 +173,10 @@ func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k st
 
 		if strings.Compare(tags.Get(TAG_ADDITIONAL), CONFIG_TYPE_PARENT)==0 {
 			// met a "parent" level field
-			return GetStringValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
-
+			ok, sVal := GetStringValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			if ok {
+				return ok, sVal
+			}
 		} else if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
 			return true, objVal.Field(i).String() //return true, fmt.Sprint(objVal.Field(i).Interface())
 		}	// end -- if (k matched)
@@ -168,6 +197,42 @@ func GetStringValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (b
 		}
 	}	// end -- for(numField len)
 	return false, "not found"
+}
+
+func GetIntValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, int64) {
+	fLen := objectType.NumField()
+	objVal := reflect.ValueOf(object)
+
+	for i:=0; i<fLen; i++ {
+		tags := objectType.Field(i).Tag
+
+		if strings.Compare(tags.Get(TAG_ADDITIONAL), CONFIG_TYPE_PARENT)==0 {
+			// met a "parent" level field
+			//fmt.Println(tags, "v", k, "b", reflect.ValueOf(object).Field(i))
+			ok, iVal := GetIntValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			if ok {
+				return ok, iVal
+			}	// end -- if (ok)
+		} else if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
+			return true, reflect.ValueOf(objVal.Field(i).Int()).Interface().(int64)
+		}	// end -- if (k matched)
+	}	// end -- for (fLen)
+	return false, -1
+}
+func GetIntValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, int64) {
+	fieldType := field.Type()
+	fLen := fieldType.NumField()
+
+	for i:=0; i<fLen; i++ {
+		// check if tag contains "k"
+		tags := fieldType.Field(i).Tag
+
+		if strings.Compare(tags.Get(TAG_TOML), k)==0 {
+			innerField := field.Field(i)
+			return true, innerField.Int()
+		}
+	}	// end -- for(numField len)
+	return false, -1
 }
 
 
