@@ -54,14 +54,22 @@ func PopulateFieldValues(ln string, configType string, object interface{}, objec
 
 		// non empty line (try to process)
 		if len(ln)>0 {
+			// ignore comments
+			if strings.Index(ln, "#") == 0 {
+				return true, nil
+			}
+
 			kv := strings.Split(ln, "=")
 			if len(kv) == 2 {
-// TODO: check if this is a root level key or key under some hierarchy
 				k := strings.TrimSpace(kv[0])
-// TODO: might be string data type or something else
 				v := strings.TrimSpace(kv[1])
 
-				populateStringValByFieldName(object, objectType, k, v)
+				// check if "v" is an array
+				if strings.Index(v, "[")==0 && strings.LastIndex(v, "]")==(len(v)-1) {
+// TODO: handle array population plus array type policy
+				} else {
+					populateStringValByFieldName(object, objectType, k, v)
+				}	// end -- if (array???)
 			}
 		}	// end -- if (ln is non empty)
 		return true, nil

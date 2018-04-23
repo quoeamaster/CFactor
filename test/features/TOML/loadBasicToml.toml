@@ -6,3 +6,6 @@ author.lastName = "Wong"
 author.height = 167.5
 role = "admin"
 activeProfile = true
+
+# array declaration
+hobbies = [ "badminton", "reading", "guitar" ]
