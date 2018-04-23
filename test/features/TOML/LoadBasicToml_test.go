@@ -37,6 +37,8 @@ func loadToml(name string) error {
 }
 
 func checkTomlContents(numOfFields int) error {
+
+fmt.Println("**", config)
 	if numOfFields == 1 {
 		return nil
 	}

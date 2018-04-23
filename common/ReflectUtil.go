@@ -11,6 +11,10 @@ const CONFIG_TYPE_TOML = "CFG_T"
 const CONFIG_TYPE_JSON = "CFG_J"
 const CONFIG_TYPE_PARENT = "parent"
 
+const TAG_TOML = "toml"
+const TAG_JSON = "json"
+const TAG_ADDITIONAL = "additional"
+const TAG_SET = "set"
 
 type TagStructure struct {
 	CType string
@@ -58,6 +62,10 @@ func PopulateFieldValues(ln string, configType string, object interface{}, objec
 	return false, errors.New("object / value provided is non-valid")
 }
 
+type TestDemo struct {
+	Msg string
+}
+
 /*
  *	population of a string field by fieldName
  */
@@ -69,19 +77,41 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 	v = strings.Replace(v, "\"", "", -1)
 
 	for i:=0; i<fLen; i++ {
-		tag := fmt.Sprintln(objectType.Field(i).Tag)
-		tagStruct := ParseTagToTagStructure(tag)
+		tags := objectType.Field(i).Tag
 
-		if strings.Compare(tagStruct.Additional, CONFIG_TYPE_PARENT) == 0 {
+		if strings.Compare(tags.Get(TAG_ADDITIONAL), CONFIG_TYPE_PARENT) == 0 {
 			// TODO: do not work at the moment, as the reflected value is not a real object instance... (recursively populate...)
-			/*
-			structObjType := objVal.Field(i).Type()
-			structObj := objVal.Field(i)
-			populateStringValByFieldName(&structObj, structObjType, k, v)
-			*/
+
+			structObj := NewStructPointerByType(objVal.Field(i).Type())
+			popStructobj := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), k, v)
+
+			structField := objVal.Field(i)
+			if objVal.CanSet() && structField.CanSet() {
+				methodName := tags.Get(TAG_SET)
+				methodRef := reflect.ValueOf(object).MethodByName(methodName)
+
+				inParams := make([]reflect.Value, methodRef.Type().NumIn())
+				inParams[0]=reflect.ValueOf(popStructobj)
+				p := make(map[string]string)
+				p["demo"]="demo-value"
+				inParams[1]=reflect.ValueOf(p)
+
+				outVals := methodRef.Call(inParams)
+				fmt.Println("m name", methodName, "m2", methodRef, "p1",popStructobj, "output", outVals)
+/*
+				s := TestDemo{ "happy"}
+// TODO: t.SetAuthor (method... at the Struct side... do the casting)
+
+
+				structField.Set(reflect.ValueOf(&popStructobj))
+				structField.Set(reflect.ValueOf(s))
+*/
+			}
+
 
 		} else {
-			if strings.Compare(tagStruct.Field, k) == 0 {
+			if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
+				// ### reflect.ValueOf(&r).Elem().Field(i).SetInt( i64 )
 				objVal.Field(i).SetString(v)
 				break
 			}	// end -- if (k matched)
@@ -89,15 +119,35 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 	}	// end -- for (fLen)
 }
 
+func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, k, v string) (interface{}) {
+	fLen := structObjType.NumField()
+	// strip the " symbol if any
+	v = strings.Replace(v, "\"", "", -1)
+
+	structObj := NewStructPointerByType(structObjType) //.Elem()
+	//fmt.Println(structObj, structObj.Type(), structObj.CanSet())
+
+	for i:=0; i<fLen; i++ {
+		tags := structObjType.Field(i).Tag
+
+		if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
+			rField := structObj.Elem().Field(i)
+			if rField.CanSet() {
+				rField.SetString(v)
+			}	// end -- if (rField can set)
+		}	// end -- if (tagStruct.Field == k)
+	}	// end -- for (fLen)
+	return structObj
+}
+
 func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, string) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object)
 
 	for i:=0; i<fLen; i++ {
-		tag := fmt.Sprintln(objectType.Field(i).Tag)
-		tagStruct := ParseTagToTagStructure(tag)
+		tags := objectType.Field(i).Tag
 
-		if strings.Compare(tagStruct.Field, k) == 0 {
+		if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
 			return true, objVal.Field(i).String() //return true, fmt.Sprint(objVal.Field(i).Interface())
 		}	// end -- if (k matched)
 	}	// end -- for (fLen)
@@ -112,13 +162,14 @@ func IsValueValid(object reflect.Value) bool {
 	return !strings.Contains(object.String(), "invalid")
 }
 
+
 func IsValidPointer(object interface{}) bool {
 	return object != nil
 }
 
 /**
  *	method to parse a Tag (from struct) to a TagStructure instance
- */
+ *
 func ParseTagToTagStructure(tag string) TagStructure {
 	parts := strings.Split(tag, ":")
 	s := TagStructure{}
@@ -132,3 +183,4 @@ func ParseTagToTagStructure(tag string) TagStructure {
 	}
 	return s
 }
+*/

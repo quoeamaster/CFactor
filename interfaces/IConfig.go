@@ -16,4 +16,15 @@ type IConfig interface {
 	Load(name string, structType reflect.Type) (reflect.Value, error)
 }
 
+/**
+ *	include a generic set method.
+ *	provide the "key" plus an optional "params" map
+ *
+ *	implementation would need to handle implicit in the code (eg. date format
+ *	handling and type casting into time.Time)
+ */
+type ISetter interface {
+	Set(key string, params map[string]string) (bool, error)
+}
+
 
