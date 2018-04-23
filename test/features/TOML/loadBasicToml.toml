@@ -3,3 +3,6 @@ version = "1.1.0a"
 workingHoursDay = 8
 author.age = 25
 author.lastName = "Wong"
+author.height = 167.5
+role = "admin"
+activeProfile = true

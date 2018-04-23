@@ -48,7 +48,7 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 		// build the object based on the given Type plus populate the contents loaded into bBytes
 		lines := common.GetLinesFromByteArrayContent(bBytes)
 		for _, v := range lines {
-			ok, err := common.PopulateFieldValues(v, common.CONFIG_TYPE_TOML, ptrConfigObject, t.StructType)
+			ok, err := common.PopulateFieldValues(v, common.ConfigTypeTOML, ptrConfigObject, t.StructType)
 			if !ok && err!=nil {
 				return ptrConfigObject, err
 			}
@@ -58,22 +58,33 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 	return reflect.Zero(t.StructType), err
 }
 
+
+/* ------------------------------------ */
+/*	GETTERs based on key and dataType	*/
+/* ------------------------------------ */
+
+
+func (t *TOMLConfigImpl) GetStringValueByKey(object interface{}, fieldName string) (bool, string) {
+	return common.GetStringValueByTomlField(object, t.StructType, fieldName)
+}
+func (t *TOMLConfigImpl) GetIntValueByKey(object interface{}, fieldName string) (bool, int64) {
+	return common.GetIntValueByTomlField(object, t.StructType, fieldName)
+}
+func (t *TOMLConfigImpl) GetFloatValueByKey(object interface{}, fieldName string) (bool, float64) {
+	return common.GetFloatValueByTomlField(object, t.StructType, fieldName)
+}
+func (t *TOMLConfigImpl) GetBoolValueByKey(object interface{}, fieldName string) (bool, bool) {
+	return common.GetBoolValueByTomlField(object, t.StructType, fieldName)
+}
+
+
 /**
- *	check if the given field:value pair matches the given object instance
+ *	check if the given field:value pair matches the given object instance (string)
  */
 func (t *TOMLConfigImpl) IsFieldStringValueMatched(object interface{}, fieldName, value string) bool {
 	ok, sVal := common.GetStringValueByTomlField(object, t.StructType, fieldName)
 
 	if ok && strings.Compare(sVal, value) == 0 {
-		return true
-	}
-	return false
-}
-
-func (t *TOMLConfigImpl) IsFieldIntValueMatched(object interface{}, fieldName string, value int) bool {
-	ok, sVal := common.GetIntValueByTomlField(object, t.StructType, fieldName)
-
-	if ok && int64(value) == sVal {
 		return true
 	}
 	return false

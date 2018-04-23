@@ -24,3 +24,6 @@ Feature: TOML Access (Basic use cases)
     And the value for field "author.firstName" is "Jason"
     And the integer value for field "workingHoursDay" is 8
     And the integer value for field "author.age" is 25
+    And the float value for field "author.height" is 167.5
+    And the value for field "role" is "admin"
+    And the bool value for field "activeProfile" is "true"

@@ -23,11 +23,14 @@ import (
 
 type DemoTOMLConfig struct {
 	Version string `toml:"version"`
+	Role string `toml:"role"`
 
 	Author Author `toml:"author" additional:"parent" set:"SetAuthor"`
 	//FirstName string `toml:"author.firstName"`	// easiest way to implement "hierarchy"
 
-	WorkingHoursDay int `toml:"workingHoursDay"`
+	WorkingHoursDay int  `toml:"workingHoursDay"`
+	ActiveProfile   bool `toml:"activeProfile"`
+
 
 	// TODO: more to come...
 }
@@ -37,6 +40,7 @@ type Author struct {
 	FirstName string `toml:"author.firstName"`
 	LastName string `toml:"author.lastName"`
 	Age int `toml:"author.age"`
+	Height float32 `toml:"author.height"`
 }
 
 
@@ -44,8 +48,9 @@ type Author struct {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (d *DemoTOMLConfig) String() string {
-	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Author [struct] => %v",
-		d.Version, d.WorkingHoursDay, d.Author.String())
+	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, Author [struct] => %v",
+		d.Version, d.WorkingHoursDay, d.Role,
+		d.ActiveProfile, d.Author.String())
 
 	return s
 }
@@ -53,7 +58,8 @@ func (d *DemoTOMLConfig) String() string {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (a *Author) String() string {
-	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v}", a.FirstName, a.LastName, a.Age)
+	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v; Height => %v}",
+		a.FirstName, a.LastName, a.Age, a.Height)
 
 	return s
 }
@@ -83,6 +89,13 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 				panic(errors.New(fmt.Sprintf("author.age should be of type integer, given value => [%v]", params["author.age"])))
 			}
 			author.Age = iVal
+		}
+		if len(params["author.height"])>0 {
+			fVal, cErr := strconv.ParseFloat(params["author.height"], 32)
+			if cErr != nil {
+				panic(errors.New(fmt.Sprintf("author.age should be of type float32, given value => [%v]", params["author.height"])))
+			}
+			author.Height = float32(fVal)
 		}
 		d.Author = author
 

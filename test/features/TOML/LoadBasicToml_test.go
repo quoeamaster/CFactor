@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"CFactor/TOML"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 // class level variable
@@ -43,18 +45,67 @@ func iShouldBeAbleToAccessTheFieldsFromThisTomlFile() error {
 }
 
 func checkFieldValue(field, value string) error {
-	if configReader.IsFieldStringValueMatched(config, field, value) {
+	ok, val := configReader.GetStringValueByKey(config, field)
+	if !ok {
+		return fmt.Errorf("given %v's value not FOUND", field)
+	}
+	if strings.Compare(val, value)==0 {
+		// additional check
+		if !configReader.IsFieldStringValueMatched(config, field, value) {
+			return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
+		}
 		return nil
 	}
-	return fmt.Errorf("field [%v] does not matches with {%v}", field, value)
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
 }
 
 func theIntegerValueForFieldIs(field string, value int) error {
-	if configReader.IsFieldIntValueMatched(config, field, value) {
+	ok, val := configReader.GetIntValueByKey(config, field)
+	if !ok {
+		return fmt.Errorf("given %v's value not FOUND", field)
+	}
+	if val==int64(value) {
 		return nil
 	}
-	return fmt.Errorf("field [%v] does not matches with {%v}", field, value)
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
 }
+
+func theFloatValueForFieldIs(field string, value float32) error {
+	/*
+	 ** this is the normal way to do checking; however there are cases that
+	 **	you need reflection api to check dynamic struct values
+	 */
+	if strings.Compare("author.height", field)==0 {
+		if value == config.Author.Height {
+			return nil
+		}
+		return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Author.Height)
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Author.Height)
+	/*
+	ok, val := configReader.GetFloatValueByKey(config, field)
+	if !ok {
+		return fmt.Errorf("given %v's value not FOUND", field)
+	}
+	if val==float64(value) {
+		return nil
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
+	*/
+}
+
+func theBoolValueForFieldIs(field, value string) error {
+	bValue, _ := strconv.ParseBool(value)
+	ok, val := configReader.GetBoolValueByKey(config, field)
+	if !ok {
+		return fmt.Errorf("given %v's value not FOUND", field)
+	}
+	if val==bValue {
+		return nil
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
+}
+
 
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^there is a TOML in the current folder named "([^"]*)"$`, foundATomlFileLocation)
@@ -62,4 +113,6 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^I should be able to access the fields from this toml file$`, iShouldBeAbleToAccessTheFieldsFromThisTomlFile)
 	s.Step(`^the value for field "([^"]*)" is "([^"]*)"$`, checkFieldValue)
 	s.Step(`^the integer value for field "([^"]*)" is (\d+)$`, theIntegerValueForFieldIs)
+	s.Step(`^the float value for field "([^"]*)" is (\d+\.\d+)$`, theFloatValueForFieldIs)
+	s.Step(`^the bool value for field "([^"]*)" is "([^"]*)"$`, theBoolValueForFieldIs)
 }
