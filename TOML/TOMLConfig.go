@@ -34,14 +34,12 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (interface{}, error) 
 
 	if err == nil {
 		// build the object based on the given Type plus populate the contents loaded into bBytes
-		//objectPtr := common.NewStructPointerByType(t.StructType)
 		lines := common.GetLinesFromByteArrayContent(bBytes)
 		for _, v := range lines {
 			ok, err := common.PopulateFieldValues(v, common.CONFIG_TYPE_TOML, ptrConfigObject, t.StructType)
 			if !ok && err!=nil {
 				return ptrConfigObject, err
 			}
-			//fmt.Printf("config line.{v} => {%v}\n", v)
 		}
 		return ptrConfigObject, nil
 	}

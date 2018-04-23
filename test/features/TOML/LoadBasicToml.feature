@@ -19,6 +19,6 @@ Feature: TOML Access (Basic use cases)
   Scenario: Load TOML in the current / relative path
     Given there is a TOML in the current folder named "loadBasicToml.toml"
     When I load the TOML file named "loadBasicToml.toml"
-    Then I should be able to access the 1 fields from this toml file
+    Then I should be able to access the fields from this toml file
     And the value for field "version" is "1.1.0a"
     And the value for field "author.firstName" is "Jason"

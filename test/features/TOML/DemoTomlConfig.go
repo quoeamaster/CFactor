@@ -26,7 +26,7 @@ type DemoTOMLConfig struct {
 	Author Author `toml:"author" additional:"parent" set:"SetAuthor"`
 	//FirstName string `toml:"author.firstName"`	// easiest way to implement "hierarchy"
 
-	// more to come...
+	// TODO: more to come...
 }
 
 
@@ -40,7 +40,7 @@ type Author struct {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (d *DemoTOMLConfig) String() string {
-	s := fmt.Sprintf("Version => %v", d.Version)
+	s := fmt.Sprintf("Version => %v, Author [struct] => %v", d.Version, d.Author.String())
 
 	return s
 }
@@ -48,20 +48,32 @@ func (d *DemoTOMLConfig) String() string {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (a *Author) String() string {
-	s := fmt.Sprintf("FirstName => %v; LastName => %v", a.FirstName, a.LastName)
+	s := fmt.Sprintf("{FirstName => %v; LastName => %v}", a.FirstName, a.LastName)
 
 	return s
 }
 
-
+/**
+ *	setter implementation
+ */
 func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error) {
-	// in this case "key" could be "Author" means the value provided
+	// in this case "key" could be "Author"
 	if len(key)>0 && strings.Compare(key, "Author")==0 {
-		author := Author{
-			FirstName: params["author.firstName"],
-			LastName: params["author.lastName"],
+		// check if any existing Author struct available
+		author := d.Author
+		if len(author.FirstName)==0 && len(author.LastName)==0 {
+			author = Author{}
+			d.Author = author
+		}
+		// populate
+		if len(params["author.firstName"])>0 {
+			author.FirstName = params["author.firstName"]
+		}
+		if len(params["author.lastName"])>0 {
+			author.LastName = params["author.lastName"]
 		}
 		d.Author = author
+
 		return true, nil
 	}
 	// TODO: might have more to come...
@@ -70,16 +82,14 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 		fmt.Sprintf("something wrong on creating the Author struct, key provided => [%v]\n", key))
 }
 
+
 /**
  *	setter for the "Author" member
  */
-func (d *DemoTOMLConfig) SetAuthor(object interface{}, p map[string]string) (bool, error) {
+func (d *DemoTOMLConfig) SetAuthor(p map[string]string) (bool, error) {
+	return d.Set("Author", p)
 
-
-	fmt.Println(p["demo"])
-
-
-	// casting
+	// casting (due to the design constraints, golang doesn't provide such feature on reflection casting...)
 	/*
 	type ABC struct {
 		NAme string
@@ -91,17 +101,10 @@ func (d *DemoTOMLConfig) SetAuthor(object interface{}, p map[string]string) (boo
 	v1 := reflect.ValueOf(x3)
 	y1 := v1.Interface().(ABC) // y will have type float64.
 	fmt.Println(y1, "type?", reflect.TypeOf(y1))
-	*/
-
-fmt.Println("inside setAuthor")
-
-
-	//author := Author{}
 
 
 	//authorStruct := objVal.Interface().(Author)
-//fmt.Println("checkpoint", authorStruct)
+	//fmt.Println("checkpoint", authorStruct)
 	//d.Author = authorStruct
-
-	return true, nil
+	*/
 }

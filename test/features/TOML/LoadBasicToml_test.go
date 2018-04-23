@@ -36,13 +36,9 @@ func loadToml(name string) error {
 	return nil
 }
 
-func checkTomlContents(numOfFields int) error {
-
-fmt.Println("**", config)
-	if numOfFields == 1 {
-		return nil
-	}
-	return fmt.Errorf("Num of fields available in the toml file MUST be %v\n", numOfFields)
+func iShouldBeAbleToAccessTheFieldsFromThisTomlFile() error {
+	// really just to add this "feature" line for clarity, no actions are required
+	return nil
 }
 
 func checkFieldValue(field, value string) error {
@@ -55,6 +51,6 @@ func checkFieldValue(field, value string) error {
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^there is a TOML in the current folder named "([^"]*)"$`, foundATomlFileLocation)
 	s.Step(`^I load the TOML file named "([^"]*)"$`, loadToml)
-	s.Step(`^I should be able to access the (\d+) fields from this toml file$`, checkTomlContents)
+	s.Step(`^I should be able to access the fields from this toml file$`, iShouldBeAbleToAccessTheFieldsFromThisTomlFile)
 	s.Step(`^the value for field "([^"]*)" is "([^"]*)"$`, checkFieldValue)
 }

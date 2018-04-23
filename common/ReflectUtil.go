@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strings"
 	"errors"
-	"fmt"
 )
 
 const CONFIG_TYPE_TOML = "CFG_T"
@@ -15,6 +14,7 @@ const TAG_TOML = "toml"
 const TAG_JSON = "json"
 const TAG_ADDITIONAL = "additional"
 const TAG_SET = "set"
+const TAG_GET = "get"
 
 type TagStructure struct {
 	CType string
@@ -33,7 +33,6 @@ func NewStructPointerByType(t reflect.Type) reflect.Value {
 }
 
 func PopulateFieldValues(ln string, configType string, object interface{}, objectType reflect.Type) (bool, error) {
-	// if IsValueValid(object) == true {
 	if IsValidPointer(object) == true {
 		// trim the ln (spaces removal)
 		if len(ln)>0 {
@@ -80,10 +79,9 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 		tags := objectType.Field(i).Tag
 
 		if strings.Compare(tags.Get(TAG_ADDITIONAL), CONFIG_TYPE_PARENT) == 0 {
-			// TODO: do not work at the moment, as the reflected value is not a real object instance... (recursively populate...)
-
+			// do not work at the moment, as the reflected value is not a real object instance... (recursively populate...)
 			structObj := NewStructPointerByType(objVal.Field(i).Type())
-			popStructobj := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), k, v)
+			paramsMap := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), k, v)
 
 			structField := objVal.Field(i)
 			if objVal.CanSet() && structField.CanSet() {
@@ -91,23 +89,13 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 				methodRef := reflect.ValueOf(object).MethodByName(methodName)
 
 				inParams := make([]reflect.Value, methodRef.Type().NumIn())
-				inParams[0]=reflect.ValueOf(popStructobj)
-				p := make(map[string]string)
-				p["demo"]="demo-value"
-				inParams[1]=reflect.ValueOf(p)
+				inParams[0]=reflect.ValueOf(paramsMap)
 
 				outVals := methodRef.Call(inParams)
-				fmt.Println("m name", methodName, "m2", methodRef, "p1",popStructobj, "output", outVals)
-/*
-				s := TestDemo{ "happy"}
-// TODO: t.SetAuthor (method... at the Struct side... do the casting)
-
-
-				structField.Set(reflect.ValueOf(&popStructobj))
-				structField.Set(reflect.ValueOf(s))
-*/
-			}
-
+				if outVals[0].Bool() == false {
+					panic(outVals[1])
+				}	// end -- if (have error)
+			}	// end -- if (canSet)
 
 		} else {
 			if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
@@ -119,10 +107,12 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 	}	// end -- for (fLen)
 }
 
-func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, k, v string) (interface{}) {
-	fLen := structObjType.NumField()
+func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, k, v string) (map[string]string) {
 	// strip the " symbol if any
 	v = strings.Replace(v, "\"", "", -1)
+
+	/*
+	fLen := structObjType.NumField()
 
 	structObj := NewStructPointerByType(structObjType) //.Elem()
 	//fmt.Println(structObj, structObj.Type(), structObj.CanSet())
@@ -138,7 +128,14 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
 		}	// end -- if (tagStruct.Field == k)
 	}	// end -- for (fLen)
 	return structObj
+	*/
+
+	p := make(map[string]string)
+	p[k] = v
+
+	return p
 }
+
 
 func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, string) {
 	fLen := objectType.NumField()
@@ -147,12 +144,32 @@ func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k st
 	for i:=0; i<fLen; i++ {
 		tags := objectType.Field(i).Tag
 
-		if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
+		if strings.Compare(tags.Get(TAG_ADDITIONAL), CONFIG_TYPE_PARENT)==0 {
+			// met a "parent" level field
+			return GetStringValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+
+		} else if strings.Compare(tags.Get(TAG_TOML), k) == 0 {
 			return true, objVal.Field(i).String() //return true, fmt.Sprint(objVal.Field(i).Interface())
 		}	// end -- if (k matched)
 	}	// end -- for (fLen)
 	return false, ""
 }
+func GetStringValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, string) {
+	fieldType := field.Type()
+	fLen := fieldType.NumField()
+
+	for i:=0; i<fLen; i++ {
+		// check if tag contains "k"
+		tags := fieldType.Field(i).Tag
+
+		if strings.Compare(tags.Get(TAG_TOML), k)==0 {
+			innerField := field.Field(i)
+			return true, innerField.String()
+		}
+	}	// end -- for(numField len)
+	return false, "not found"
+}
+
 
 
 /**

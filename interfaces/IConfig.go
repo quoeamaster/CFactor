@@ -28,3 +28,8 @@ type ISetter interface {
 }
 
 
+type IGetter interface {
+	Get(key string) (interface{})
+}
+
+
