@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strconv"
 	"fmt"
+	"time"
 )
 
 const ConfigTypeTOML = "CFG_T"
@@ -23,6 +24,7 @@ const TypeString = "string"
 const TypeFloat32 = "float32"
 const TypeFloat64 = "float64"
 const TypeBool = "bool"
+const TypeTime = "time.Time"
 
 type TagStructure struct {
 	CType string
@@ -159,26 +161,36 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
  *	handy method to handle set-value operation based on dataType (sharable by TOML and JSON config)
  */
 func setValueByDataType(dataType string, targetField reflect.Value, k, v string) {
-	if strings.Compare(dataType, TypeInt)==0 {
+	if strings.Compare(dataType, TypeInt) == 0 {
 		iVal, cErr := strconv.Atoi(v)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to int type for field [%v]", v, k)))
 		}
 		targetField.SetInt(int64(iVal))
-	} else if strings.Compare(dataType, TypeString)==0 {
+	} else if strings.Compare(dataType, TypeString) == 0 {
 		targetField.SetString(v)
-	} else if strings.Compare(dataType, TypeFloat32)==0 || strings.Compare(dataType, TypeFloat64)==0 {
+	} else if strings.Compare(dataType, TypeFloat32) == 0 || strings.Compare(dataType, TypeFloat64) == 0 {
 		fVal, cErr := strconv.ParseFloat(v, 64)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to float32 / 64 type for field [%v]", v, k)))
 		}
 		targetField.SetFloat(fVal)
-	} else if strings.Compare(dataType, TypeBool)==0 {
+	} else if strings.Compare(dataType, TypeBool) == 0 {
 		bVal, cErr := strconv.ParseBool(v)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to bool type for field [%v]", v, k)))
 		}
 		targetField.SetBool(bVal)
+	} else if strings.Compare(dataType, TypeTime) == 0 {
+		patterns := []string{ TIME_SHORT_DATE, TIME_SHORT_DATE_TIME, TIME_DEFAULT }
+		tVal, _, cErr := ParseStringToTimeWithPatterns (patterns, v)
+		if cErr != nil {
+			panic(errors.New(fmt.Sprintf("cannot convert [%v] to time.Time type for field [%v]", v, k)))
+		}
+// TODO: log by level (info level or debug level)???
+		//fmt.Printf("[debug] format matched for time.Time field => [%v]; time.Time value => {%v}\n", format, tVal)
+		targetField.Set(reflect.ValueOf(tVal))
+
 	} else {
 		panic(errors.New(fmt.Sprintf("unknown type / value for field [%v] = [%v]", k, v)))
 	}
@@ -329,6 +341,44 @@ func GetBoolValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (boo
 	}	// end -- for(numField len)
 	return false, false
 }
+
+func GetTimeValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, time.Time) {
+	fLen := objectType.NumField()
+	objVal := reflect.ValueOf(object)
+
+	for i:=0; i<fLen; i++ {
+		tags := objectType.Field(i).Tag
+
+		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent)==0 {
+			// met a "parent" level field
+			ok, tVal := GetTimeValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			if ok {
+				return ok, tVal
+			}	// end -- if (ok)
+		} else if strings.Compare(tags.Get(TagTOML), k) == 0 {
+			tVal := objVal.Field(i).Interface().(time.Time)
+			return true, tVal
+		}	// end -- if (k matched)
+	}	// end -- for (fLen)
+	return false, time.Now()
+}
+func GetTimeValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, time.Time) {
+	fieldType := field.Type()
+	fLen := fieldType.NumField()
+
+	for i:=0; i<fLen; i++ {
+		// check if tag contains "k"
+		tags := fieldType.Field(i).Tag
+
+		if strings.Compare(tags.Get(TagTOML), k)==0 {
+			innerField := field.Field(i)
+			// innerField.Elem().Interface().(time.Time)
+			return true, innerField.Interface().(time.Time)
+		}
+	}	// end -- for(numField len)
+	return false, time.Now()
+}
+
 
 /* ---------------------------- */
 /*	check validity of type(s)	*/

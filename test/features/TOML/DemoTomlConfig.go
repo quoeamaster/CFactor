@@ -5,6 +5,8 @@ import (
 	"strings"
 	"errors"
 	"strconv"
+	"time"
+	"CFactor/common"
 )
 
 /*
@@ -31,6 +33,12 @@ type DemoTOMLConfig struct {
 	WorkingHoursDay int  `toml:"workingHoursDay"`
 	ActiveProfile   bool `toml:"activeProfile"`
 
+	// slice / array of hobbies (in string)
+	Hobbies []string `toml:"hobbies"`
+
+	LastUpdateTime time.Time `toml:"lastUpdateTime"`
+	ShortDate time.Time `toml:"shortDate"`
+	ShortDateTime time.Time `toml:"shortDateTime"`
 
 	// TODO: more to come...
 }
@@ -41,6 +49,7 @@ type Author struct {
 	LastName string `toml:"author.lastName"`
 	Age int `toml:"author.age"`
 	Height float32 `toml:"author.height"`
+	Birthday time.Time `toml:"author.birthday"`
 }
 
 
@@ -48,9 +57,11 @@ type Author struct {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (d *DemoTOMLConfig) String() string {
-	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, Author [struct] => %v",
+	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, LastUpdateTime => %v, Hobbies => %v,  Author [struct] => %v",
 		d.Version, d.WorkingHoursDay, d.Role,
-		d.ActiveProfile, d.Author.String())
+		d.ActiveProfile, d.LastUpdateTime.String(),
+		d.Hobbies,
+		d.Author.String())
 
 	return s
 }
@@ -79,24 +90,33 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 		// populate
 		if len(params["author.firstName"])>0 {
 			author.FirstName = params["author.firstName"]
-		}
-		if len(params["author.lastName"])>0 {
+
+		} else if len(params["author.lastName"])>0 {
 			author.LastName = params["author.lastName"]
-		}
-		if len(params["author.age"])>0 {
+
+		} else if len(params["author.age"])>0 {
 			iVal, cErr := strconv.Atoi(params["author.age"])
 			if cErr != nil {
 				panic(errors.New(fmt.Sprintf("author.age should be of type integer, given value => [%v]", params["author.age"])))
 			}
 			author.Age = iVal
-		}
-		if len(params["author.height"])>0 {
+
+		} else if len(params["author.height"])>0 {
 			fVal, cErr := strconv.ParseFloat(params["author.height"], 32)
 			if cErr != nil {
-				panic(errors.New(fmt.Sprintf("author.age should be of type float32, given value => [%v]", params["author.height"])))
+				panic(errors.New(fmt.Sprintf("author.height should be of type float32, given value => [%v]", params["author.height"])))
 			}
 			author.Height = float32(fVal)
+
+		} else if len(params["author.birthday"])>0 {
+			patterns := []string{ common.TIME_DEFAULT, common.TIME_SHORT_DATE, common.TIME_SHORT_DATE_TIME }
+			tVal, _, cErr := common.ParseStringToTimeWithPatterns(patterns, params["author.birthday"])
+			if cErr != nil {
+				panic(errors.New(fmt.Sprintf("author.birthday should be of type time.Time, given value => [%v]", params["author.birthday"])))
+			}
+			author.Birthday = tVal
 		}
+
 		d.Author = author
 
 		return true, nil

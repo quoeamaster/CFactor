@@ -9,3 +9,10 @@ activeProfile = true
 
 # array declaration
 hobbies = [ "badminton", "reading", "guitar" ]
+
+# date time (testing on different time formats)
+lastUpdateTime = "2016-12-25T14:02:59+08:00"
+shortDate = "2016-02-12"
+shortDateTime = "2016-03-13T14:12:56"
+
+author.birthday = "1990-02-28"

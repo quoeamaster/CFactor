@@ -8,6 +8,7 @@ import (
 	"CFactor/common"
 	"strings"
 	"runtime"
+	"time"
 )
 
 type TOMLConfigImpl struct {
@@ -75,6 +76,9 @@ func (t *TOMLConfigImpl) GetFloatValueByKey(object interface{}, fieldName string
 }
 func (t *TOMLConfigImpl) GetBoolValueByKey(object interface{}, fieldName string) (bool, bool) {
 	return common.GetBoolValueByTomlField(object, t.StructType, fieldName)
+}
+func (t *TOMLConfigImpl) GetTimeValueByKey(object interface{}, fieldName string) (bool, time.Time) {
+	return common.GetTimeValueByTomlField(object, t.StructType, fieldName)
 }
 
 

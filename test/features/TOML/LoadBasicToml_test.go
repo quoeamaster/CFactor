@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"CFactor/common"
 )
 
 // class level variable
@@ -106,6 +107,27 @@ func theBoolValueForFieldIs(field, value string) error {
 	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
 }
 
+func theTimeValueForFieldIs(field, valueInString string) error {
+	// parse the valueInString to time.Time
+	// if you know the pattern ... use common.ParseStringToTime; else ...
+	patterns := []string { common.TIME_DEFAULT, common.TIME_SHORT_DATE_TIME, common.TIME_SHORT_DATE }
+	t0, _, err := common.ParseStringToTimeWithPatterns(patterns, valueInString)
+	if err != nil {
+		return fmt.Errorf("the given time (string format) is not valid {%v}", err)
+	}
+	//fmt.Println("[debug] matched format => ", format)
+
+	// equality check
+	ok, val := configReader.GetTimeValueByKey(config, field)
+	if !ok {
+		return fmt.Errorf("given %v's value not FOUND", field)
+	}
+	if t0.Equal(val) {
+		return nil
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, t0, val)
+}
+
 
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^there is a TOML in the current folder named "([^"]*)"$`, foundATomlFileLocation)
@@ -115,4 +137,5 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^the integer value for field "([^"]*)" is (\d+)$`, theIntegerValueForFieldIs)
 	s.Step(`^the float value for field "([^"]*)" is (\d+\.\d+)$`, theFloatValueForFieldIs)
 	s.Step(`^the bool value for field "([^"]*)" is "([^"]*)"$`, theBoolValueForFieldIs)
+	s.Step(`^the time value for field "([^"]*)" is "([^"]*)"$`, theTimeValueForFieldIs)
 }

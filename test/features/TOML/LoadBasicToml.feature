@@ -27,3 +27,8 @@ Feature: TOML Access (Basic use cases)
     And the float value for field "author.height" is 167.5
     And the value for field "role" is "admin"
     And the bool value for field "activeProfile" is "true"
+    And the time value for field "lastUpdateTime" is "2016-12-25T14:02:59+08:00"
+    And the time value for field "shortDateTime" is "2016-03-13T14:12:56"
+    And the time value for field "shortDate" is "2016-02-12"
+    And the time value for field "author.birthday" is "1990-02-28"
+
