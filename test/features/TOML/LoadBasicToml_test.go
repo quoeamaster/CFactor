@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"CFactor/common"
+	"time"
 )
 
 // class level variable
@@ -128,6 +129,144 @@ func theTimeValueForFieldIs(field, valueInString string) error {
 	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, t0, val)
 }
 
+func theStrArrValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value string, arraySize int) error {
+	// semi-hard code test case (for simplicity)
+	var actualArrSize int
+	var actualVal string
+
+	if strings.Compare("hobbies", field)==0 {
+		sArr := config.Hobbies
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		if strings.Compare(actualVal, value)==0 && arraySize == actualArrSize {
+			return nil
+		}
+
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v) / size might also not match {%v} vs [%v]", field, value, actualVal, arraySize, actualArrSize)
+}
+func theIntArrayValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value int, arraySize int) error {
+	// semi-hard code test case (for simplicity)
+	var actualVal, actualArrSize int
+
+	if strings.Compare("author.luckyNumbers", field)==0 {
+		sArr := config.Author.LuckyNumbers
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		if actualVal == value && arraySize == actualArrSize {
+			return nil
+		}
+
+	} else if strings.Compare("taskNumbers", field)==0 {
+		sArr := config.TaskNumbers
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		if actualVal == value && arraySize == actualArrSize {
+			return nil
+		}
+
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v) / size might also not match {%v} vs [%v]", field, value, actualVal, arraySize, actualArrSize)
+}
+
+func theFloat32ArValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value float32, arraySize int) error {
+	// semi-hard code test case (for simplicity)
+	var actualArrSize int
+	var actualVal float32
+
+	if strings.Compare("floatingPoints32", field)==0 {
+		sArr := config.FloatingPoints32
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		if actualVal == value && arraySize == actualArrSize {
+			return nil
+		}
+
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v) / size might also not match {%v} vs [%v]", field, value, actualVal, arraySize, actualArrSize)
+}
+func theFloat64ArValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value float64, arraySize int) error {
+	// semi-hard code test case (for simplicity)
+	var actualArrSize int
+	var actualVal float64
+
+	if strings.Compare("author.attributes64", field)==0 {
+		sArr := config.Author.Attributes64
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		if actualVal == value && arraySize == actualArrSize {
+			return nil
+		}
+
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v) / size might also not match {%v} vs [%v]", field, value, actualVal, arraySize, actualArrSize)
+}
+
+func theBoolArrayValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value string, arraySize int) error {
+	// semi-hard code test case (for simplicity)
+	var actualArrSize int
+	var actualVal bool
+
+	if strings.Compare("author.likes", field)==0 {
+		sArr := config.Author.Likes
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		// parse value to bool
+		bVal, cErr := strconv.ParseBool(value)
+		if cErr == nil && actualVal == bVal && arraySize == actualArrSize {
+			return nil
+		}
+
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v) / size might also not match {%v} vs [%v]", field, value, actualVal, arraySize, actualArrSize)
+}
+
+func theTimeArrayValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value string, arraySize int) error {
+	// semi-hard code test case (for simplicity)
+	var actualArrSize int
+	var actualVal time.Time
+
+	if strings.Compare("author.registrationDates", field)==0 {
+		sArr := config.Author.RegistrationDates
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		// parse value to bool
+		tVal, _, cErr := common.ParseStringToTimeWithPatterns(
+			[]string{
+				common.TIME_DEFAULT,
+				common.TIME_SHORT_DATE,
+				common.TIME_SHORT_DATE_TIME},
+			value)
+		if cErr == nil && actualVal.Equal(tVal) && arraySize == actualArrSize {
+			return nil
+		}
+
+	} else if strings.Compare("specialDates", field)==0 {
+		sArr := config.SpecialDates
+		actualVal = sArr[arrayIdx]
+		actualArrSize = len(sArr)
+
+		// parse value to bool
+		tVal, _, cErr := common.ParseStringToTimeWithPatterns(
+			[]string{
+				common.TIME_DEFAULT,
+				common.TIME_SHORT_DATE,
+				common.TIME_SHORT_DATE_TIME },
+			value)
+		if cErr == nil && actualVal.Equal(tVal) && arraySize == actualArrSize {
+			return nil
+		}
+	}
+	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v) / size might also not match {%v} vs [%v]", field, value, actualVal, arraySize, actualArrSize)
+}
+
 
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^there is a TOML in the current folder named "([^"]*)"$`, foundATomlFileLocation)
@@ -138,4 +277,10 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^the float value for field "([^"]*)" is (\d+\.\d+)$`, theFloatValueForFieldIs)
 	s.Step(`^the bool value for field "([^"]*)" is "([^"]*)"$`, theBoolValueForFieldIs)
 	s.Step(`^the time value for field "([^"]*)" is "([^"]*)"$`, theTimeValueForFieldIs)
+	s.Step(`^the array value for field "([^"]*)" at index "(\d+)" is "(\d+)" cap is "(\d+)"$`, theIntArrayValueForFieldAtIndexIsCapIs)
+	s.Step(`^the array value for field "([^"]*)" at index "(\d+)" is "([^"]*)" cap is "(\d+)"$`, theStrArrValueForFieldAtIndexIsCapIs)
+	s.Step(`^the array value for field "32" bit "([^"]*)" at index "(\d+)" is "(\d+\.\d+)" cap is "(\d+)"$`, theFloat32ArValueForFieldAtIndexIsCapIs)
+	s.Step(`^the array value for field "64" bit "([^"]*)" at index "(\d+)" is "(\d+\.\d+)" cap is "(\d+)"$`, theFloat64ArValueForFieldAtIndexIsCapIs)
+	s.Step(`^the array value for field "bool" "([^"]*)" at index "(\d+)" is "([^"]*)" cap is "(\d+)"$`, theBoolArrayValueForFieldAtIndexIsCapIs)
+	s.Step(`^the array value for field "time" "([^"]*)" at index "(\d+)" is "([^"]*)" cap is "(\d+)"$`, theTimeArrayValueForFieldAtIndexIsCapIs)
 }

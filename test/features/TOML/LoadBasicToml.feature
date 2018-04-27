@@ -31,4 +31,12 @@ Feature: TOML Access (Basic use cases)
     And the time value for field "shortDateTime" is "2016-03-13T14:12:56"
     And the time value for field "shortDate" is "2016-02-12"
     And the time value for field "author.birthday" is "1990-02-28"
-
+    And the array value for field "author.luckyNumbers" at index "1" is "89" cap is "2"
+    And the array value for field "taskNumbers" at index "2" is "2451" cap is "3"
+    And the array value for field "hobbies" at index "0" is "badminton" cap is "3"
+    And the array value for field "32" bit "floatingPoints32" at index "1" is "45.9" cap is "2"
+    And the array value for field "64" bit "author.attributes64" at index "2" is "99.01" cap is "3"
+    And the array value for field "bool" "author.likes" at index "1" is "true" cap is "3"
+    And the array value for field "time" "author.registrationDates" at index "1" is "2009-02-14" cap is "2"
+    And the array value for field "time" "specialDates" at index "1" is "2009-12-22" cap is "3"
+    And the array value for field "time" "specialDates" at index "0" is "2016-12-25T14:02:59+08:00" cap is "3"

@@ -26,6 +26,14 @@ const TypeFloat64 = "float64"
 const TypeBool = "bool"
 const TypeTime = "time.Time"
 
+const TypeArrayString = "[]string"
+const TypeArrayInt = "[]int"
+const TypeArrayFloat32 = "[]float32"
+const TypeArrayFloat64 = "[]float64"
+const TypeArrayBool = "[]bool"
+const TypeArrayTime = "[]time.Time"
+
+
 type TagStructure struct {
 	CType string
 	Field string
@@ -68,9 +76,11 @@ func PopulateFieldValues(ln string, configType string, object interface{}, objec
 
 				// check if "v" is an array
 				if isValueAnArray(v) {
-// TODO: handle array population plus array type policy
+					// handle array population plus array type policy
+					populateStringValByFieldName(object, objectType, k, v, true)
+
 				} else {
-					populateStringValByFieldName(object, objectType, k, v)
+					populateStringValByFieldName(object, objectType, k, v, false)
 				}	// end -- if (array???)
 			}
 		}	// end -- if (ln is non empty)
@@ -88,7 +98,7 @@ func isValueAnArray(value string) bool {
 /*
  *	population of a string field by fieldName
  */
-func populateStringValByFieldName(object interface{}, objectType reflect.Type, k string, v string) {
+func populateStringValByFieldName(object interface{}, objectType reflect.Type, k string, v string, isArray bool) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object).Elem()
 
@@ -124,7 +134,7 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 		} else {
 			if strings.Compare(tags.Get(TagTOML), k) == 0 {
 				// ### reflect.ValueOf(&r).Elem().Field(i).SetInt( i64 )
-				setValueByDataType(typeField.Type.String(), objVal.Field(i), k, v)
+				setValueByDataType(typeField.Type.String(), objVal.Field(i), k, v, isArray)
 				break
 			}	// end -- if (k matched)
 		}	// end -- if (additional_info == parent)
@@ -160,7 +170,13 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
 /**
  *	handy method to handle set-value operation based on dataType (sharable by TOML and JSON config)
  */
-func setValueByDataType(dataType string, targetField reflect.Value, k, v string) {
+func setValueByDataType(dataType string, targetField reflect.Value, k, v string, isArray bool) {
+	var sArray []string
+
+	if isArray {
+		sArray = CleanseArrayedString(v)
+	}
+
 	if strings.Compare(dataType, TypeInt) == 0 {
 		iVal, cErr := strconv.Atoi(v)
 		if cErr != nil {
@@ -169,32 +185,80 @@ func setValueByDataType(dataType string, targetField reflect.Value, k, v string)
 		targetField.SetInt(int64(iVal))
 	} else if strings.Compare(dataType, TypeString) == 0 {
 		targetField.SetString(v)
+
 	} else if strings.Compare(dataType, TypeFloat32) == 0 || strings.Compare(dataType, TypeFloat64) == 0 {
 		fVal, cErr := strconv.ParseFloat(v, 64)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to float32 / 64 type for field [%v]", v, k)))
 		}
 		targetField.SetFloat(fVal)
+
 	} else if strings.Compare(dataType, TypeBool) == 0 {
 		bVal, cErr := strconv.ParseBool(v)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to bool type for field [%v]", v, k)))
 		}
 		targetField.SetBool(bVal)
+
 	} else if strings.Compare(dataType, TypeTime) == 0 {
-		patterns := []string{ TIME_SHORT_DATE, TIME_SHORT_DATE_TIME, TIME_DEFAULT }
-		tVal, _, cErr := ParseStringToTimeWithPatterns (patterns, v)
+		patterns := []string{TIME_SHORT_DATE, TIME_SHORT_DATE_TIME, TIME_DEFAULT}
+		tVal, _, cErr := ParseStringToTimeWithPatterns(patterns, v)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to time.Time type for field [%v]", v, k)))
 		}
-// TODO: log by level (info level or debug level)???
+		// TODO: log by level (info level or debug level)???
 		//fmt.Printf("[debug] format matched for time.Time field => [%v]; time.Time value => {%v}\n", format, tVal)
 		targetField.Set(reflect.ValueOf(tVal))
+
+	} else if strings.Compare(dataType, TypeArrayString)==0 {
+		// easiest... string array, no additional type conversion
+		targetField.Set(reflect.ValueOf( TrimStringArrayMembers(sArray) ))
+
+	} else if strings.Compare(dataType, TypeArrayInt)==0 {
+		// conversion required
+		array, err := ConvertStringArrayToIntArray(sArray)
+		if err != nil {
+			panic(err)
+		}
+		targetField.Set(reflect.ValueOf( array ))
+
+	} else if strings.Compare(dataType, TypeArrayFloat32)==0 {
+		// conversion required
+		array, err := ConvertStringArrayToFloat32Array(sArray)
+		if err != nil {
+			panic(err)
+		}
+		targetField.Set(reflect.ValueOf( array ))
+
+	} else if strings.Compare(dataType, TypeArrayFloat64)==0 {
+		// conversion required
+		array, err := ConvertStringArrayToFloat64Array(sArray)
+		if err != nil {
+			panic(err)
+		}
+		targetField.Set(reflect.ValueOf( array ))
+
+	} else if strings.Compare(dataType, TypeArrayBool)==0 {
+		// conversion required
+		array, err := ConvertStringArrayToBoolArray(sArray)
+		if err != nil {
+			panic(err)
+		}
+		targetField.Set(reflect.ValueOf( array ))
+
+	} else if strings.Compare(dataType, TypeArrayTime)==0 {
+		// conversion required
+		array, err := ConvertStringArrayToTimeArray(sArray)
+		if err != nil {
+			panic(err)
+		}
+		targetField.Set(reflect.ValueOf( array ))
 
 	} else {
 		panic(errors.New(fmt.Sprintf("unknown type / value for field [%v] = [%v]", k, v)))
 	}
 }
+
 
 
 /* ---------------------------------------- */

@@ -36,9 +36,14 @@ type DemoTOMLConfig struct {
 	// slice / array of hobbies (in string)
 	Hobbies []string `toml:"hobbies"`
 
+	TaskNumbers []int `toml:"taskNumbers"`
+
 	LastUpdateTime time.Time `toml:"lastUpdateTime"`
 	ShortDate time.Time `toml:"shortDate"`
 	ShortDateTime time.Time `toml:"shortDateTime"`
+
+	FloatingPoints32 []float32 `toml:"floatingPoints32"`
+	SpecialDates []time.Time `toml:"specialDates"`
 
 	// TODO: more to come...
 }
@@ -50,6 +55,10 @@ type Author struct {
 	Age int `toml:"author.age"`
 	Height float32 `toml:"author.height"`
 	Birthday time.Time `toml:"author.birthday"`
+	LuckyNumbers []int `toml:"author.luckyNumbers"`
+	Attributes64 []float64 `toml:"attributes64"`
+	Likes []bool `toml:"author.likes"`
+	RegistrationDates []time.Time `toml:"author.registrationDates"`
 }
 
 
@@ -57,11 +66,14 @@ type Author struct {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (d *DemoTOMLConfig) String() string {
-	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, LastUpdateTime => %v, ShortDate => %v, ShortDateTime => %v, Hobbies => %v,  Author [struct] => %v",
+	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, LastUpdateTime => %v, ShortDate => %v, ShortDateTime => %v, Hobbies => %v(%v), TaskNumbers => %v(%v), FloatingPoints32 => %v(%v), SpecialDates => %v,(%v) # Author [struct] => %v",
 		d.Version, d.WorkingHoursDay, d.Role,
 		d.ActiveProfile, d.LastUpdateTime.String(),
 		d.ShortDate, d.ShortDateTime,
-		d.Hobbies,
+		d.Hobbies, len(d.Hobbies),
+		d.TaskNumbers, len(d.TaskNumbers),
+		d.FloatingPoints32, len(d.FloatingPoints32),
+		d.SpecialDates, len(d.SpecialDates),
 		d.Author.String())
 
 	return s
@@ -70,9 +82,12 @@ func (d *DemoTOMLConfig) String() string {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (a *Author) String() string {
-	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v; Height => %v, birthday => %v}",
+	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v; Height => %v, birthday => %v, luckyNumbers => %v(%v), attributes => %v[%v], likes => %v(%v), registrationDates => %v(%v) }",
 		a.FirstName, a.LastName, a.Age,
-		a.Height, a.Birthday )
+		a.Height, a.Birthday, a.LuckyNumbers, len(a.LuckyNumbers),
+		a.Attributes64, len(a.Attributes64),
+		a.Likes, len(a.Likes),
+		a.RegistrationDates, len(a.RegistrationDates) )
 
 	return s
 }
@@ -117,8 +132,48 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 				panic(errors.New(fmt.Sprintf("author.birthday should be of type time.Time, given value => [%v]", params["author.birthday"])))
 			}
 			author.Birthday = tVal
-		}
 
+		} else if len(params["author.luckyNumbers"])>0 {
+			sValAll := params["author.luckyNumbers"]
+			sVals := common.CleanseArrayedString(sValAll)
+			iArr, cErr := common.ConvertStringArrayToIntArray(sVals)
+
+			if cErr != nil {
+				panic(cErr)
+			}
+			author.LuckyNumbers = iArr
+
+		} else if len(params["author.attributes64"])>0 {
+			sValAll := params["author.attributes64"]
+			sVals := common.CleanseArrayedString(sValAll)
+			f64Arr, cErr := common.ConvertStringArrayToFloat64Array(sVals)
+
+			if cErr != nil {
+				panic(cErr)
+			}
+			author.Attributes64 = f64Arr
+
+		} else if len(params["author.likes"])>0 {
+			sValAll := params["author.likes"]
+			sVals := common.CleanseArrayedString(sValAll)
+			bArr, cErr := common.ConvertStringArrayToBoolArray(sVals)
+
+			if cErr != nil {
+				panic(cErr)
+			}
+			author.Likes = bArr
+
+		} else if len(params["author.registrationDates"])>0 {
+			sValAll := params["author.registrationDates"]
+			sVals := common.CleanseArrayedString(sValAll)
+			tArr, cErr := common.ConvertStringArrayToTimeArray(sVals)
+
+			if cErr != nil {
+				panic(cErr)
+			}
+			author.RegistrationDates = tArr
+
+		}
 		d.Author = author
 
 		return true, nil

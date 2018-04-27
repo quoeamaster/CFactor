@@ -9,6 +9,15 @@ activeProfile = true
 
 # array declaration
 hobbies = [ "badminton", "reading", "guitar" ]
+taskNumbers = [1009,2990,2451  ]
+floatingPoints32 = [123.11, 45.9 ]
+specialDates = [ "2016-12-25T14:02:59+08:00", "2009-12-22", "2008-01-01" ]
+
+# array (child level)
+author.luckyNumbers = [ 12,   89 ]
+author.attributes64 = [123.67,345.89, 99.01 ]
+author.likes = [false,true , false]
+author.registrationDates = [ "2016-04-30T23:59:59-05:00", "2009-02-14" ]
 
 # date time (testing on different time formats)
 lastUpdateTime = "2016-12-25T14:02:59+08:00"
@@ -16,3 +25,6 @@ shortDate = "2016-02-12"
 shortDateTime = "2016-03-13T14:12:56"
 
 author.birthday = "1990-02-28"
+
+
+
