@@ -57,9 +57,10 @@ type Author struct {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (d *DemoTOMLConfig) String() string {
-	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, LastUpdateTime => %v, Hobbies => %v,  Author [struct] => %v",
+	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, LastUpdateTime => %v, ShortDate => %v, ShortDateTime => %v, Hobbies => %v,  Author [struct] => %v",
 		d.Version, d.WorkingHoursDay, d.Role,
 		d.ActiveProfile, d.LastUpdateTime.String(),
+		d.ShortDate, d.ShortDateTime,
 		d.Hobbies,
 		d.Author.String())
 
@@ -69,8 +70,9 @@ func (d *DemoTOMLConfig) String() string {
  *	override to have a meaningful description of the struct / object / instance
  */
 func (a *Author) String() string {
-	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v; Height => %v}",
-		a.FirstName, a.LastName, a.Age, a.Height)
+	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v; Height => %v, birthday => %v}",
+		a.FirstName, a.LastName, a.Age,
+		a.Height, a.Birthday )
 
 	return s
 }

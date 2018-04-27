@@ -67,7 +67,7 @@ func PopulateFieldValues(ln string, configType string, object interface{}, objec
 				v := strings.TrimSpace(kv[1])
 
 				// check if "v" is an array
-				if strings.Index(v, "[")==0 && strings.LastIndex(v, "]")==(len(v)-1) {
+				if isValueAnArray(v) {
 // TODO: handle array population plus array type policy
 				} else {
 					populateStringValByFieldName(object, objectType, k, v)
@@ -79,8 +79,10 @@ func PopulateFieldValues(ln string, configType string, object interface{}, objec
 	return false, errors.New("object / value provided is non-valid")
 }
 
-type TestDemo struct {
-	Msg string
+
+func isValueAnArray(value string) bool {
+	// TODO: might better use regexp...
+	return strings.Index(value, "[")==0 && strings.LastIndex(value, "]")==(len(value)-1)
 }
 
 /*
@@ -131,7 +133,10 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, k, v string) (map[string]string) {
 	// strip the " symbol if any
 	v = strings.Replace(v, "\"", "", -1)
+	p := make(map[string]string)
+	p[k] = v
 
+	return p
 	/*
 	fLen := structObjType.NumField()
 
@@ -150,11 +155,6 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
 	}	// end -- for (fLen)
 	return structObj
 	*/
-
-	p := make(map[string]string)
-	p[k] = v
-
-	return p
 }
 
 /**
