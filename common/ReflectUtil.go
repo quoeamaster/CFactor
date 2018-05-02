@@ -201,7 +201,7 @@ func setValueByDataType(dataType string, targetField reflect.Value, k, v string,
 		targetField.SetBool(bVal)
 
 	} else if strings.Compare(dataType, TypeTime) == 0 {
-		patterns := []string{TIME_SHORT_DATE, TIME_SHORT_DATE_TIME, TIME_DEFAULT}
+		patterns := []string{TimeShortDate, TimeShortDateTime, TimeDefault}
 		tVal, _, cErr := ParseStringToTimeWithPatterns(patterns, v)
 		if cErr != nil {
 			panic(errors.New(fmt.Sprintf("cannot convert [%v] to time.Time type for field [%v]", v, k)))
@@ -460,21 +460,3 @@ func IsValueValid(object reflect.Value) bool {
 func IsValidPointer(object interface{}) bool {
 	return object != nil
 }
-
-/**
- *	method to parse a Tag (from struct) to a TagStructure instance
- *
-func ParseTagToTagStructure(tag string) TagStructure {
-	parts := strings.Split(tag, ":")
-	s := TagStructure{}
-
-	if len(parts) >= 2 {
-		s.CType = strings.TrimSpace(parts[0])
-		s.Field = strings.TrimSpace(parts[1])
-	}
-	if len(parts) > 2 {
-		s.Additional = strings.TrimSpace(parts[2])
-	}
-	return s
-}
-*/

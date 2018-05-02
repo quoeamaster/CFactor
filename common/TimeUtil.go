@@ -16,9 +16,9 @@ import (
  * 	2016-12-25T01:02:59+08:00 => HKT
  *	2016-12-25T01:02:59Z => UTC (* Z means UTC, special handling)
  */
-const TIME_DEFAULT = "2006-01-02T15:04:05Z07:00"
-const TIME_SHORT_DATE = "2006-01-02"
-const TIME_SHORT_DATE_TIME = "2006-01-02T15:04:05"
+const TimeDefault = "2006-01-02T15:04:05Z07:00"
+const TimeShortDate = "2006-01-02"
+const TimeShortDateTime = "2006-01-02T15:04:05"
 
 /**
  *	parse the given valueInString to the given format.
@@ -61,7 +61,7 @@ func FormatTimeToString(format string, valueInTime time.Time) string {
  */
 func validateTimeFormat(format string) string {
 	if len(format) == 0 || len(strings.TrimSpace(format))==0 {
-		return TIME_DEFAULT
+		return TimeDefault
 	} else {
 		return format
 	}

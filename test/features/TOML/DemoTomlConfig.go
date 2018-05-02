@@ -126,7 +126,7 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 			author.Height = float32(fVal)
 
 		} else if len(params["author.birthday"])>0 {
-			patterns := []string{ common.TIME_DEFAULT, common.TIME_SHORT_DATE, common.TIME_SHORT_DATE_TIME }
+			patterns := []string{ common.TimeDefault, common.TimeShortDate, common.TimeShortDateTime}
 			tVal, _, cErr := common.ParseStringToTimeWithPatterns(patterns, params["author.birthday"])
 			if cErr != nil {
 				panic(errors.New(fmt.Sprintf("author.birthday should be of type time.Time, given value => [%v]", params["author.birthday"])))

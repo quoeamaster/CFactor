@@ -103,7 +103,7 @@ func ConvertStringArrayToTimeArray(sArray []string) ([]time.Time, error)  {
 
 		for i, v := range sArray {
 			iVal, _, err := ParseStringToTimeWithPatterns(
-				[]string{ TIME_DEFAULT, TIME_SHORT_DATE_TIME, TIME_SHORT_DATE },
+				[]string{TimeDefault, TimeShortDateTime, TimeShortDate},
 				strings.TrimSpace(v))
 
 			if err != nil {

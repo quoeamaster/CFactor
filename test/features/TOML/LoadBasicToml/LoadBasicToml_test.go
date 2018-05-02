@@ -1,4 +1,4 @@
-package TOML
+package LoadBasicToml
 
 import (
 	"github.com/DATA-DOG/godog"
@@ -9,16 +9,17 @@ import (
 	"strings"
 	"CFactor/common"
 	"time"
+	TOML2 "CFactor/test/features/TOML"
 )
 
 // class level variable
 var configReader TOML.TOMLConfigImpl
-var config DemoTOMLConfig
+var config TOML2.DemoTOMLConfig
 
 func foundATomlFileLocation(name string) error {
 	// somehow you need to know the target Config object/struct's type
 	if len(name)>0 {
-		configReader = TOML.NewTOMLConfigImpl(name, reflect.TypeOf(DemoTOMLConfig{}))
+		configReader = TOML.NewTOMLConfigImpl(name, reflect.TypeOf(TOML2.DemoTOMLConfig{}))
 		return nil
 
 	} else {
@@ -28,14 +29,14 @@ func foundATomlFileLocation(name string) error {
 
 func loadToml(name string) error {
 	// create an instance for population
-	configObject := DemoTOMLConfig{ Author: Author{} }
+	configObject := TOML2.DemoTOMLConfig{ Author: TOML2.Author{} }
 
 	// no overriding parameters supplied
 	cfgInterface, err := configReader.Load(&configObject)
 	if err != nil {
 		return fmt.Errorf("Error in loading the TOML file. %v\n", err)
 	}
-	config = reflect.ValueOf(cfgInterface).Elem().Interface().(DemoTOMLConfig)
+	config = reflect.ValueOf(cfgInterface).Elem().Interface().(TOML2.DemoTOMLConfig)
 	fmt.Println("\t#",config.String())
 
 	return nil
@@ -111,7 +112,7 @@ func theBoolValueForFieldIs(field, value string) error {
 func theTimeValueForFieldIs(field, valueInString string) error {
 	// parse the valueInString to time.Time
 	// if you know the pattern ... use common.ParseStringToTime; else ...
-	patterns := []string { common.TIME_DEFAULT, common.TIME_SHORT_DATE_TIME, common.TIME_SHORT_DATE }
+	patterns := []string { common.TimeDefault, common.TimeShortDateTime, common.TimeShortDate}
 	t0, _, err := common.ParseStringToTimeWithPatterns(patterns, valueInString)
 	if err != nil {
 		return fmt.Errorf("the given time (string format) is not valid {%v}", err)
@@ -240,9 +241,9 @@ func theTimeArrayValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value s
 		// parse value to bool
 		tVal, _, cErr := common.ParseStringToTimeWithPatterns(
 			[]string{
-				common.TIME_DEFAULT,
-				common.TIME_SHORT_DATE,
-				common.TIME_SHORT_DATE_TIME},
+				common.TimeDefault,
+				common.TimeShortDate,
+				common.TimeShortDateTime},
 			value)
 		if cErr == nil && actualVal.Equal(tVal) && arraySize == actualArrSize {
 			return nil
@@ -256,9 +257,9 @@ func theTimeArrayValueForFieldAtIndexIsCapIs(field string, arrayIdx int, value s
 		// parse value to bool
 		tVal, _, cErr := common.ParseStringToTimeWithPatterns(
 			[]string{
-				common.TIME_DEFAULT,
-				common.TIME_SHORT_DATE,
-				common.TIME_SHORT_DATE_TIME },
+				common.TimeDefault,
+				common.TimeShortDate,
+				common.TimeShortDateTime},
 			value)
 		if cErr == nil && actualVal.Equal(tVal) && arraySize == actualArrSize {
 			return nil
