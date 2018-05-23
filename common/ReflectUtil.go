@@ -443,6 +443,66 @@ func GetTimeValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (boo
 	return false, time.Now()
 }
 
+func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, fieldName string) interface{} {
+	numFields := objectType.NumField()
+	objectVal := reflect.ValueOf(object)
+
+	for idx:=0; idx<numFields; idx++ {
+		// match the field names....
+		fieldRef := objectVal.Field(idx)
+		fieldMetaRef := objectType.Field(idx)
+		if strings.Compare(fieldName, fieldMetaRef.Name)==0 {
+			// found~ based on fieldRef type ... do the casting
+			indirectVal := reflect.Indirect(fieldRef)
+			indirectValType := indirectVal.Type().String()
+
+			if strings.Compare(indirectValType, TypeString) == 0 {
+				// real strings MUST be surrounded by "
+				return "\""+indirectVal.String()+"\""
+
+			} else if strings.Compare(indirectValType, TypeTime) == 0 {
+				//return indirectVal
+				// real time.Time MUST be surrounded by "
+				return "\""+FormatTimeToString("", indirectVal.Interface().(time.Time))+"\""
+			}
+// TODO: more types to add/ support
+			break
+		}
+	}	// end -- for (loop of all fields)
+
+	return nil
+}
+
+/* ---------------------------------------- */
+/*	access field value through reflection 	*/
+/* ---------------------------------------- */
+
+func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructField) bool {
+	valObj := reflect.ValueOf(object)
+	fieldTypeString := valObj.Field(idx).Type().String()
+
+	if strings.Compare(fieldTypeString, TypeString) == 0 {
+		return IsStringEmptyOrNil(valObj.Field(idx).String())
+
+	} else if strings.Compare(fieldTypeString, TypeTime) == 0 {
+		/*
+		 *	to check if time.Time is ZERO => https://golang.org/pkg/time/#Time.IsZero
+		 */
+		time := reflect.Indirect(valObj.Field(idx)).Interface().(time.Time)
+		if !time.IsZero() {
+			return false
+		} else {
+			return true
+		}
+	}
+// TODO: int etc...
+
+
+	return true
+}
+
+
+
 
 /* ---------------------------- */
 /*	check validity of type(s)	*/
@@ -460,3 +520,6 @@ func IsValueValid(object reflect.Value) bool {
 func IsValidPointer(object interface{}) bool {
 	return object != nil
 }
+
+
+

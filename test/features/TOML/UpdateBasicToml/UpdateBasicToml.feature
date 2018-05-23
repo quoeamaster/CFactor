@@ -12,7 +12,7 @@ Feature: TOML Access (Basic use cases)
   Scenario: Load the TOML and then update the field <lastUpdateTime>; then retrieve it again to prove if worked
     Given there is a TOML in the current folder named "updateBasicToml.toml"
     When I load the TOML file named "updateBasicToml.toml"
-    Then by accessing the toml loaded, the value for field "version" is "1.1"
-    And set the "lastUpdateTime" to the current timestamp "2018-05-01T11:59:59+08:00"
-    And save changes to the "updateBasicToml.toml"
-    And finally reload the configuration, "lastUpdateTime" should equals to "2018-05-01T11:59:59+08:00"
+    Then by accessing the toml loaded, the value for field "version" is "1.1 alpha"
+    And set the "LastUpdateTime" to the current timestamp "2018-05-01T11:59:59+08:00"
+    And save changes to the "updateBasicToml_test.toml"
+    And finally reload the configuration file "updateBasicToml_test.toml", "lastUpdateTime" should equals to "2018-05-01T11:59:59+08:00"

@@ -3,6 +3,7 @@ package common
 import (
 	"io/ioutil"
 	"strings"
+	"os"
 )
 
 /**
@@ -22,6 +23,20 @@ func GetLinesFromByteArrayContent(data []byte) ([]string) {
 		sLines = strings.Split(sData, "\n")
 	}
 	return sLines
+}
+
+/**
+ *	helper method to create a file object
+ */
+func CreateFile(filename string) (*os.File) {
+	if !IsStringEmptyOrNil(filename) {
+		filePtr, err := os.Create(filename)
+		if err != nil {
+			panic(err)
+		}
+		return filePtr
+	}
+	return nil
 }
 
 

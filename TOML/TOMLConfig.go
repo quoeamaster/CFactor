@@ -9,6 +9,9 @@ import (
 	"strings"
 	"runtime"
 	"time"
+	"bufio"
+	"fmt"
+	"errors"
 )
 
 type TOMLConfigImpl struct {
@@ -35,7 +38,7 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(runtime.Error); ok {
-				// runtime error, can't help in most cases
+				// runtime error, check if anything could be helped to continue the program
 				panic(r)
 			}
 			err = r.(error)
@@ -57,6 +60,60 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 		return ptrConfigObject, nil
 	}
 	return reflect.Zero(t.StructType), err
+}
+
+/**
+ *	to save / persist the given configObject to the the given resource name
+ *	(filename); type information is required so that the correct
+ *	translation is performed
+ */
+func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject interface{}) (err error) {
+	err = nil
+	// create a Map[string]object structure for the available config tags
+	configMap := make(map[string]interface{})
+	numFields := structType.NumField()
+
+	for idx := 0; idx < numFields; idx++ {
+		fieldMeta := structType.Field(idx)
+		ok := common.IsFieldValueEmptyOrNil(configObject, idx, fieldMeta)
+		if ok==false {
+			tagValue := fieldMeta.Tag.Get(common.TagTOML)
+			configMap[tagValue] = common.GetValueByTomlFieldNType(configObject, structType, fieldMeta.Name)
+		}	// end -- if (handle the non-nil values)
+	}	// end -- for (numFields loop)
+
+	if len(configMap) > 0 {
+		cfgFile := common.CreateFile(name)
+		cfgWriter := bufio.NewWriter(cfgFile)
+		// sort of finally clause
+		defer func() {
+			// display some info about the error???
+			cfgWriter.Flush()
+			cfgFile.Close()
+			/*
+			 *	try to catch the err and return out to the caller instead of panic =>
+			 *	https://stackoverflow.com/questions/19934641/go-returning-from-defer
+			 */
+			if r := recover(); r != nil {
+				switch r.(type) {
+				case error:
+					err = r.(error)
+				default:
+					errLine := fmt.Sprintf("unknown error => %v", r)
+					err = errors.New(errLine)
+				}
+			}
+		}()
+
+		for key, value := range configMap {
+			cfgLine := fmt.Sprintf("%v = %v\n", key, value)
+			_, err := cfgWriter.WriteString(cfgLine)
+			if err != nil {
+				return err
+			}
+		}	// end -- for (all entries inside the config map
+	}	// end -- if (configMap has some elements)
+	return err
 }
 
 

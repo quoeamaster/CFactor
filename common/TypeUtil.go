@@ -128,3 +128,14 @@ func TrimStringArrayMembers(sArray []string) []string {
 	return sArray
 }
 
+
+/* ------------------------------------ */
+/*	check empty / nil based on type		*/
+/* ------------------------------------ */
+
+func IsStringEmptyOrNil(value string) bool {
+	if len(strings.TrimSpace(value))==0 {
+		return true
+	}
+	return false
+}

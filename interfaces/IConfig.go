@@ -14,7 +14,17 @@ type IConfig interface {
 	 *	TODO: create a generics version???
 	 */
 	Load(name string, structType reflect.Type) (reflect.Value, error)
+
+	/**
+	 *	to save / persist the given configObject to the the given resource name
+	 *	(filename); type information is required so that the correct
+	 *	translation is performed
+	 */
+	Save(name string, structType reflect.Type, configObject interface{}) (error)
 }
+
+
+
 
 /**
  *	include a generic set method.
@@ -23,6 +33,7 @@ type IConfig interface {
  *	implementation would need to handle implicit in the code (eg. date format
  *	handling and type casting into time.Time)
  */
+/*
 type ISetter interface {
 	Set(key string, params map[string]string) (bool, error)
 }
@@ -31,5 +42,5 @@ type ISetter interface {
 type IGetter interface {
 	Get(key string) (interface{})
 }
-
+*/
 
