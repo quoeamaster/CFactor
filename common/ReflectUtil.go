@@ -443,6 +443,9 @@ func GetTimeValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (boo
 	return false, time.Now()
 }
 
+/**
+ *	generic method to get back values based on the object and fieldName
+ */
 func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, fieldName string) interface{} {
 	numFields := objectType.NumField()
 	objectVal := reflect.ValueOf(object)
@@ -461,11 +464,39 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 				return "\""+indirectVal.String()+"\""
 
 			} else if strings.Compare(indirectValType, TypeTime) == 0 {
-				//return indirectVal
 				// real time.Time MUST be surrounded by "
 				return "\""+FormatTimeToString("", indirectVal.Interface().(time.Time))+"\""
+
+			} else if strings.Compare(indirectValType, TypeInt) == 0 {
+				return indirectVal.Interface().(int)
+
+			} else if strings.Compare(indirectValType, TypeBool) == 0 {
+				return indirectVal.Interface().(bool)
+
+			} else if strings.Compare(indirectValType, TypeFloat32) == 0 {
+				return indirectVal.Interface().(float32)
+
+			} else if strings.Compare(indirectValType, TypeFloat64) == 0 {
+				return indirectVal.Interface().(float64)
+
+			} else if strings.Compare(indirectValType, TypeArrayString) == 0 {
+				return indirectVal.Interface().([]string)
+
+			} else if strings.Compare(indirectValType, TypeArrayTime) == 0 {
+				return indirectVal.Interface().([]time.Time)
+
+			} else if strings.Compare(indirectValType, TypeArrayInt) == 0 {
+				return indirectVal.Interface().([]int)
+
+			} else if strings.Compare(indirectValType, TypeArrayBool) == 0 {
+				return indirectVal.Interface().([]bool)
+
+			} else if strings.Compare(indirectValType, TypeArrayFloat32) == 0 {
+				return indirectVal.Interface().([]float32)
+
+			} else if strings.Compare(indirectValType, TypeArrayFloat64) == 0 {
+				return indirectVal.Interface().([]float64)
 			}
-// TODO: more types to add/ support
 			break
 		}
 	}	// end -- for (loop of all fields)
@@ -494,9 +525,56 @@ func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructFie
 		} else {
 			return true
 		}
-	}
-// TODO: int etc...
+	} else if strings.Compare(fieldTypeString, TypeInt) == 0 {
+		// int's default is "0" which means never possible to be empty
+		return false
 
+	} else if strings.Compare(fieldTypeString, TypeBool) == 0 {
+		// bool's default is "false" which means never possible to be empty
+		return false
+
+	} else if strings.Compare(fieldTypeString, TypeFloat32) == 0 {
+		// floats default is "0.0" which means never possible to be empty
+		return false
+
+	} else if strings.Compare(fieldTypeString, TypeFloat64) == 0 {
+		// floats default is "0.0" which means never possible to be empty
+		return false
+
+	}
+
+	// *** arrays ***
+	if strings.Compare(fieldTypeString, TypeArrayString) == 0 {
+		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]string)
+		if len(arr) > 0 {
+			return false
+		}
+	} else if strings.Compare(fieldTypeString, TypeArrayTime) == 0 {
+		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]time.Time)
+		if len(arr) > 0 {
+			return false
+		}
+	} else if strings.Compare(fieldTypeString, TypeArrayInt) == 0 {
+		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]int)
+		if len(arr) > 0 {
+			return false
+		}
+	} else if strings.Compare(fieldTypeString, TypeArrayBool) == 0 {
+		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]bool)
+		if len(arr) > 0 {
+			return false
+		}
+	} else if strings.Compare(fieldTypeString, TypeArrayFloat32) == 0 {
+		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]float32)
+		if len(arr) > 0 {
+			return false
+		}
+	} else if strings.Compare(fieldTypeString, TypeArrayFloat64) == 0 {
+		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]float64)
+		if len(arr) > 0 {
+			return false
+		}
+	}
 
 	return true
 }

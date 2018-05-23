@@ -106,7 +106,13 @@ func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject
 		}()
 
 		for key, value := range configMap {
-			cfgLine := fmt.Sprintf("%v = %v\n", key, value)
+			cfgLine := ""
+			// check if it is array (has different format)
+			cfgLine, bMatched := translateArrayValueToStringFormat(value, key)
+			if !bMatched {
+				cfgLine = fmt.Sprintf("%v = %v\n", key, value)
+			}
+
 			_, err := cfgWriter.WriteString(cfgLine)
 			if err != nil {
 				return err
@@ -116,6 +122,98 @@ func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject
 	return err
 }
 
+func translateArrayValueToStringFormat(value interface{}, key string) (string, bool) {
+	var cfgLine string
+	bMatched := false
+	sType := reflect.TypeOf(value).String()
+
+	if strings.Compare(sType, common.TypeArrayString) == 0 {
+		// cast
+		sArr := value.([]string)
+		sArrLine := "["
+		for idx2, sVal := range sArr {
+			if idx2 > 0 {
+				sArrLine += ","
+			}
+			sArrLine += "\"" + sVal + "\""
+		}
+		sArrLine += "]"
+		cfgLine = fmt.Sprintf("%v = %v\n", key, sArrLine)
+		bMatched = true
+
+	} else if strings.Compare(sType, common.TypeArrayInt) == 0 {
+		// cast
+		sArr := value.([]int)
+		sArrLine := "["
+		for idx2, iVal := range sArr {
+			if idx2 > 0 {
+				sArrLine += ","
+			}
+			sArrLine += fmt.Sprintf("%v", iVal)
+		}
+		sArrLine += "]"
+		cfgLine = fmt.Sprintf("%v = %v\n", key, sArrLine)
+		bMatched = true
+
+	} else if strings.Compare(sType, common.TypeArrayTime) == 0 {
+		// cast
+		sArr := value.([]time.Time)
+		sArrLine := "["
+		for idx2, iVal := range sArr {
+			if idx2 > 0 {
+				sArrLine += ","
+			}
+			sArrLine += "\"" + common.FormatTimeToString("", iVal) + "\""
+		}
+		sArrLine += "]"
+		cfgLine = fmt.Sprintf("%v = %v\n", key, sArrLine)
+		bMatched = true
+
+	} else if strings.Compare(sType, common.TypeArrayBool) == 0 {
+		// cast
+		sArr := value.([]bool)
+		sArrLine := "["
+		for idx2, iVal := range sArr {
+			if idx2 > 0 {
+				sArrLine += ","
+			}
+			sArrLine += fmt.Sprintf("%v", iVal)
+		}
+		sArrLine += "]"
+		cfgLine = fmt.Sprintf("%v = %v\n", key, sArrLine)
+		bMatched = true
+
+	} else if strings.Compare(sType, common.TypeArrayFloat32) == 0 {
+		// cast
+		sArr := value.([]float32)
+		sArrLine := "["
+		for idx2, iVal := range sArr {
+			if idx2 > 0 {
+				sArrLine += ","
+			}
+			sArrLine += fmt.Sprintf("%v", iVal)
+		}
+		sArrLine += "]"
+		cfgLine = fmt.Sprintf("%v = %v\n", key, sArrLine)
+		bMatched = true
+
+	} else if strings.Compare(sType, common.TypeArrayFloat64) == 0 {
+		// cast
+		sArr := value.([]float64)
+		sArrLine := "["
+		for idx2, iVal := range sArr {
+			if idx2 > 0 {
+				sArrLine += ","
+			}
+			sArrLine += fmt.Sprintf("%v", iVal)
+		}
+		sArrLine += "]"
+		cfgLine = fmt.Sprintf("%v = %v\n", key, sArrLine)
+		bMatched = true
+
+	}
+	return cfgLine, bMatched
+}
 
 /* ------------------------------------ */
 /*	GETTERs based on key and dataType	*/

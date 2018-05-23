@@ -1,0 +1,7 @@
+specialDates = ["2016-12-25T14:02:59+08:00","1998-01-01T09:02:59Z"]
+workingHoursDay = 8
+activeProfile = false
+hobbies = ["badminton","soccer","cooking"]
+taskNumbers = [123,345,567]
+lastUpdateTime = "2016-12-25T14:02:59+08:00"
+floatingPoints32 = [12.3,56.9,67.098]

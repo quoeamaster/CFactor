@@ -44,8 +44,6 @@ type DemoTOMLConfig struct {
 
 	FloatingPoints32 []float32 `toml:"floatingPoints32"`
 	SpecialDates []time.Time `toml:"specialDates"`
-
-	// TODO: more to come...
 }
 
 
