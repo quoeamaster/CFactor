@@ -457,51 +457,78 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 		if strings.Compare(fieldName, fieldMetaRef.Name)==0 {
 			// found~ based on fieldRef type ... do the casting
 			indirectVal := reflect.Indirect(fieldRef)
-			indirectValType := indirectVal.Type().String()
+			indirectType := indirectVal.Type()
+			indirectValTypeInString := indirectVal.Type().String()
 
-			if strings.Compare(indirectValType, TypeString) == 0 {
+			if strings.Compare(indirectValTypeInString, TypeString) == 0 {
 				// real strings MUST be surrounded by "
 				return "\""+indirectVal.String()+"\""
 
-			} else if strings.Compare(indirectValType, TypeTime) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeTime) == 0 {
 				// real time.Time MUST be surrounded by "
 				return "\""+FormatTimeToString("", indirectVal.Interface().(time.Time))+"\""
 
-			} else if strings.Compare(indirectValType, TypeInt) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeInt) == 0 {
 				return indirectVal.Interface().(int)
 
-			} else if strings.Compare(indirectValType, TypeBool) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeBool) == 0 {
 				return indirectVal.Interface().(bool)
 
-			} else if strings.Compare(indirectValType, TypeFloat32) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeFloat32) == 0 {
 				return indirectVal.Interface().(float32)
 
-			} else if strings.Compare(indirectValType, TypeFloat64) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeFloat64) == 0 {
 				return indirectVal.Interface().(float64)
 
-			} else if strings.Compare(indirectValType, TypeArrayString) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeArrayString) == 0 {
 				return indirectVal.Interface().([]string)
 
-			} else if strings.Compare(indirectValType, TypeArrayTime) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeArrayTime) == 0 {
 				return indirectVal.Interface().([]time.Time)
 
-			} else if strings.Compare(indirectValType, TypeArrayInt) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeArrayInt) == 0 {
 				return indirectVal.Interface().([]int)
 
-			} else if strings.Compare(indirectValType, TypeArrayBool) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeArrayBool) == 0 {
 				return indirectVal.Interface().([]bool)
 
-			} else if strings.Compare(indirectValType, TypeArrayFloat32) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeArrayFloat32) == 0 {
 				return indirectVal.Interface().([]float32)
 
-			} else if strings.Compare(indirectValType, TypeArrayFloat64) == 0 {
+			} else if strings.Compare(indirectValTypeInString, TypeArrayFloat64) == 0 {
 				return indirectVal.Interface().([]float64)
 			}
+
+			// non primitive type met, probably "struct"
+			return GetValueByTomlFieldNStructType(indirectVal, indirectType, fieldMetaRef)
+
 			break
 		}
 	}	// end -- for (loop of all fields)
 
 	return nil
+}
+
+func GetValueByTomlFieldNStructType(object interface{}, objectType reflect.Type, fieldMetaRef reflect.StructField) (map[string]interface{}) {
+	// map with all the non-null values
+	valueMap := make(map[string]interface{})
+
+	fmt.Println(valueMap, fieldMetaRef.Tag)
+
+	/* TODO: handle the method call to GetAuthor
+methodName := tags.Get(TagSet)
+methodRef := reflect.ValueOf(object).MethodByName(methodName)
+
+inParams := make([]reflect.Value, methodRef.Type().NumIn())
+inParams[0]=reflect.ValueOf(paramsMap)
+
+outVals := methodRef.Call(inParams)
+if outVals[0].Bool() == false {
+	panic(outVals[1])
+}	// end -- if (have error)
+	 */
+
+	return valueMap
 }
 
 /* ---------------------------------------- */
@@ -511,6 +538,7 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructField) bool {
 	valObj := reflect.ValueOf(object)
 	fieldTypeString := valObj.Field(idx).Type().String()
+	bMatched := false
 
 	if strings.Compare(fieldTypeString, TypeString) == 0 {
 		return IsStringEmptyOrNil(valObj.Field(idx).String())
@@ -527,18 +555,22 @@ func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructFie
 		}
 	} else if strings.Compare(fieldTypeString, TypeInt) == 0 {
 		// int's default is "0" which means never possible to be empty
+		bMatched = true
 		return false
 
 	} else if strings.Compare(fieldTypeString, TypeBool) == 0 {
 		// bool's default is "false" which means never possible to be empty
+		bMatched = true
 		return false
 
 	} else if strings.Compare(fieldTypeString, TypeFloat32) == 0 {
 		// floats default is "0.0" which means never possible to be empty
+		bMatched = true
 		return false
 
 	} else if strings.Compare(fieldTypeString, TypeFloat64) == 0 {
 		// floats default is "0.0" which means never possible to be empty
+		bMatched = true
 		return false
 
 	}
@@ -549,33 +581,55 @@ func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructFie
 		if len(arr) > 0 {
 			return false
 		}
+		bMatched = true
+
 	} else if strings.Compare(fieldTypeString, TypeArrayTime) == 0 {
 		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]time.Time)
 		if len(arr) > 0 {
 			return false
 		}
+		bMatched = true
+
 	} else if strings.Compare(fieldTypeString, TypeArrayInt) == 0 {
 		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]int)
 		if len(arr) > 0 {
 			return false
 		}
+		bMatched = true
+
 	} else if strings.Compare(fieldTypeString, TypeArrayBool) == 0 {
 		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]bool)
 		if len(arr) > 0 {
 			return false
 		}
+		bMatched = true
+
 	} else if strings.Compare(fieldTypeString, TypeArrayFloat32) == 0 {
 		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]float32)
 		if len(arr) > 0 {
 			return false
 		}
+		bMatched = true
+
 	} else if strings.Compare(fieldTypeString, TypeArrayFloat64) == 0 {
 		arr := reflect.Indirect(valObj.Field(idx)).Interface().([]float64)
 		if len(arr) > 0 {
 			return false
 		}
+		bMatched = true
 	}
 
+	// *** non primitive types such as struct(s) ***
+	if !bMatched {
+		//fA, _ := reflect.TypeOf(object).FieldByName("Author")
+		//fmt.Println(fieldTypeString,"$$", fA.Tag)
+		//fmt.Println(fieldTypeString,"$$", field.Tag)
+		if object == nil {
+			return true
+		} else {
+			return false
+		}
+	}
 	return true
 }
 

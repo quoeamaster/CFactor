@@ -271,6 +271,64 @@ func arrayfieldShouldYield(fieldName, valueArrayInString string) error {
 	return nil
 }
 
+/* ------------------------------------------------------------ */
+/*	scenario 3) Persist a bunch of fields to the target TOML	*/
+/*	  (child struct)											*/
+/* ------------------------------------------------------------ */
+
+func setupScenario3() error {
+	// just setup the values according to the feature file's contents
+	configObject.Author.LastName = "Wong"
+	configObject.Author.Age = 18
+	configObject.Author.Height = 166.5
+
+	time, err := common.ParseStringToTime("", "1980-01-30T00:00:00+08:00")
+	if err != nil {
+		return fmt.Errorf("could not convert %v to time.Time => %v", "1980-01-30T00:00:00+08:00", err)
+	}
+	configObject.Author.Birthday = time
+
+	// array fields
+	configObject.Author.LuckyNumbers = []int { 1, 23, 908 }
+	configObject.Author.Attributes64 = []float64 { 12, 990.0009 }
+	configObject.Author.Likes = []bool { true,false,true,false,false }
+
+	configObject.Author.RegistrationDates = make([]time2.Time, 2, 2)
+	time, err = common.ParseStringToTime("", "1998-01-30T00:00:00+08:00")
+	if err != nil {
+		return fmt.Errorf("could not convert %v to time.Time => %v", "1998-01-30T00:00:00+08:00", err)
+	}
+	configObject.Author.RegistrationDates[0] = time
+
+	time, err = common.ParseStringToTime("", "1990-07-28T00:00:00+00:00")
+	if err != nil {
+		return fmt.Errorf("could not convert %v to time.Time => %v", "1990-07-28T00:00:00+00:00", err)
+	}
+	configObject.Author.RegistrationDates[1] = time
+
+	return nil
+}
+
+/*
+And child field "LastName" should yield "Wong",
+And child field "Age" should yield "18",
+And child field "Height" should yield "166.5",
+And child field "Birthday" should yield "1980-01-30T00:00:00+08:00",
+*/
+func childFieldShouldYield(fieldName, valueInString string) error {
+	fmt.Println(configObject.String())
+	return godog.ErrPending
+}
+/*
+And child array-field "LuckyNumbers" should yield "1,23,908",
+And child array-field "Attributes64" should yield "12,990.0009",
+And child array-field "Likes" should yield "true,false,true,false,false",
+And child array-field "RegistrationDates" should yield "1998-01-30T00:00:00+08:00,1990-07-28T00:00:00+00:00",
+ */
+func childArrayfieldShouldYield(fieldName, valueInString string) error {
+	return godog.ErrPending
+}
+
 
 func FeatureContext(s *godog.Suite) {
 
@@ -298,4 +356,9 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^reload the "([^"]*)" \.\.\.$`, reloadConfigFile)
 	s.Step(`^field "([^"]*)" should yield "([^"].*)",$`, fieldShouldYield)
 	s.Step(`^array-field "([^"]*)" should yield "([^"].*)",$`, arrayfieldShouldYield)
+
+	// scenario 3
+	s.Step(`^an in-memory configuration object with child struct;$`, setupScenario3)
+	s.Step(`^child field "([^"]*)" should yield "([^"]*)",$`, childFieldShouldYield)
+	s.Step(`^child array-field "([^"]*)" should yield "([^"]*)",$`, childArrayfieldShouldYield)
 }

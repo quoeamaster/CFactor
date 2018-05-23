@@ -27,7 +27,7 @@ type DemoTOMLConfig struct {
 	Version string `toml:"version"`
 	Role string `toml:"role"`
 
-	Author Author `toml:"author" additional:"parent" set:"SetAuthor"`
+	Author Author `toml:"author" additional:"parent" set:"SetAuthor" get:"GetAuthor"`
 	//FirstName string `toml:"author.firstName"`	// easiest way to implement "hierarchy"
 
 	WorkingHoursDay int  `toml:"workingHoursDay"`

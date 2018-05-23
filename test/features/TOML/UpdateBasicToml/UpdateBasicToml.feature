@@ -29,7 +29,16 @@ Feature: TOML Access (Basic use cases)
     And array-field "FloatingPoints32" should yield "12.3,56.90,67.098",
     And array-field "SpecialDates" should yield "2016-12-25T14:02:59+08:00,1998-01-01T09:02:59+00:00",
 
-
-
-
+  Scenario: 3) Persist a bunch of fields to the target TOML (child struct)
+    Given an in-memory configuration object with child struct;
+    When persisted the changes to the toml file named "updateBasicToml_test3.toml";
+    Then reload the "updateBasicToml_test3.toml" ...
+    And child field "LastName" should yield "Wong",
+    And child field "Age" should yield "18",
+    And child field "Height" should yield "166.5",
+    And child field "Birthday" should yield "1980-01-30T00:00:00+08:00",
+    And child array-field "LuckyNumbers" should yield "1,23,908",
+    And child array-field "Attributes64" should yield "12,990.0009",
+    And child array-field "Likes" should yield "true,false,true,false,false",
+    And child array-field "RegistrationDates" should yield "1998-01-30T00:00:00+08:00,1990-07-28T00:00:00+00:00",
 
