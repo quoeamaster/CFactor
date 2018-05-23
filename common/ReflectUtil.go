@@ -33,6 +33,7 @@ const TypeArrayFloat64 = "[]float64"
 const TypeArrayBool = "[]bool"
 const TypeArrayTime = "[]time.Time"
 
+const TypeMap = "map["
 
 type TagStructure struct {
 	CType string
@@ -117,6 +118,7 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 			structObj := NewStructPointerByType(objVal.Field(i).Type())
 			paramsMap := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), k, v)
 
+// TODO: indiectVal.Interface()......
 			structField := objVal.Field(i)
 			if objVal.CanSet() && structField.CanSet() {
 				methodName := tags.Get(TagSet)
@@ -500,7 +502,7 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 			}
 
 			// non primitive type met, probably "struct"
-			return GetValueByTomlFieldNStructType(indirectVal, indirectType, fieldMetaRef)
+			return GetValueByTomlFieldNStructType(indirectVal.Interface(), indirectType)
 
 			break
 		}
@@ -509,25 +511,19 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 	return nil
 }
 
-func GetValueByTomlFieldNStructType(object interface{}, objectType reflect.Type, fieldMetaRef reflect.StructField) (map[string]interface{}) {
+func GetValueByTomlFieldNStructType(object interface{}, objectType reflect.Type) (map[string]interface{}) {
 	// map with all the non-null values
 	valueMap := make(map[string]interface{})
+	numFields := objectType.NumField()
 
-	fmt.Println(valueMap, fieldMetaRef.Tag)
+	for idx:=0; idx<numFields; idx++ {
+		fieldMetaRef := objectType.Field(idx)
 
-	/* TODO: handle the method call to GetAuthor
-methodName := tags.Get(TagSet)
-methodRef := reflect.ValueOf(object).MethodByName(methodName)
-
-inParams := make([]reflect.Value, methodRef.Type().NumIn())
-inParams[0]=reflect.ValueOf(paramsMap)
-
-outVals := methodRef.Call(inParams)
-if outVals[0].Bool() == false {
-	panic(outVals[1])
-}	// end -- if (have error)
-	 */
-
+		valueMap[fieldMetaRef.Tag.Get(TagTOML)] = GetValueByTomlFieldNType(
+			object,
+			reflect.TypeOf(object),
+			fieldMetaRef.Name)
+	}
 	return valueMap
 }
 

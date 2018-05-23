@@ -212,6 +212,15 @@ func translateArrayValueToStringFormat(value interface{}, key string) (string, b
 		bMatched = true
 
 	}
+
+	// *** non primitive type, such as struct ***
+	if !bMatched {
+		// is it a map?
+		if strings.Index(reflect.TypeOf(value).String(), common.TypeMap) != -1 {
+			// TODO: translation
+		}	// end -- if (map type)
+	}	// end -- if (non array type)
+
 	return cfgLine, bMatched
 }
 
