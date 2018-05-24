@@ -33,7 +33,8 @@ const TypeArrayFloat64 = "[]float64"
 const TypeArrayBool = "[]bool"
 const TypeArrayTime = "[]time.Time"
 
-const TypeMap = "map["
+const TypePartialMap = "map["
+const TypeMapStringInterface = "map[string]interface {}"
 
 type TagStructure struct {
 	CType string

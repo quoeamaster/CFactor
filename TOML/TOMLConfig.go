@@ -12,6 +12,7 @@ import (
 	"bufio"
 	"fmt"
 	"errors"
+	"bytes"
 )
 
 type TOMLConfigImpl struct {
@@ -110,8 +111,16 @@ func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject
 			// check if it is array (has different format)
 			cfgLine, bMatched := translateArrayValueToStringFormat(value, key)
 			if !bMatched {
-				cfgLine = fmt.Sprintf("%v = %v\n", key, value)
-			}
+				// check if it is non primitive type such as struct
+				cfgLine, bMatched, err = translateNonPrimitiveValueToString(value)
+				if err != nil {
+					return err
+				}
+
+				if !bMatched {
+					cfgLine = fmt.Sprintf("%v = %v\n", key, value)
+				}	// end -- if (non array + non primitive)
+			}	// end -- if (non array)
 
 			_, err := cfgWriter.WriteString(cfgLine)
 			if err != nil {
@@ -212,16 +221,44 @@ func translateArrayValueToStringFormat(value interface{}, key string) (string, b
 		bMatched = true
 
 	}
-
-	// *** non primitive type, such as struct ***
-	if !bMatched {
-		// is it a map?
-		if strings.Index(reflect.TypeOf(value).String(), common.TypeMap) != -1 {
-			// TODO: translation
-		}	// end -- if (map type)
-	}	// end -- if (non array type)
-
 	return cfgLine, bMatched
+}
+
+func translateNonPrimitiveValueToString(value interface{}) (string, bool, error) {
+	bMatched := false
+	sType := reflect.TypeOf(value).String()
+	//bBuffer := bytes.NewBuffer(make([]byte, 0))	// create a bytes.Buffer for string concatenation
+	var bBuffer bytes.Buffer	// create a bytes.Buffer for string concatenation
+
+	// is it a map?
+	if strings.Index(sType, common.TypePartialMap) != -1 {
+		if strings.Compare(common.TypeMapStringInterface, sType) == 0 {
+			// translation (we only handle map[string]interface{} type for now)
+			valueMap := value.(map[string]interface{})
+
+			for mKey, mVal := range valueMap {
+				cfgLine, bMatched2 := translateArrayValueToStringFormat(mVal, mKey)
+				if !bMatched2 {
+					// TODO: handle non array + non primitive (struct)
+					_, err := bBuffer.WriteString(fmt.Sprintf("%v = %v\n", mKey, mVal))
+					if err != nil {
+						return "", false, err
+					}
+
+				} else {
+					_, err := bBuffer.WriteString(cfgLine)
+					if err != nil {
+						return "", false, err
+					}
+				}	// end -- if (non array)
+			}	// end -- for (valueMap)
+			bMatched = true
+
+		} else {
+			panic(fmt.Sprintf("currently we only support map types of => %v\n", common.TypeMapStringInterface))
+		}
+	}	// end -- if (map type)
+	return bBuffer.String(), bMatched, nil
 }
 
 /* ------------------------------------ */

@@ -39,6 +39,13 @@ func CreateFile(filename string) (*os.File) {
 	return nil
 }
 
+/**
+ *	helper method to remove a file by the "filename"
+ */
+func RemoveFile(filename string) error {
+	return os.Remove(filename)
+}
+
 
 
 

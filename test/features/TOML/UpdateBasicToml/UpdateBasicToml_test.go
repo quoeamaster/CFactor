@@ -103,6 +103,9 @@ func reconciliationOnFieldsSet(filename, field, value string) error {
 /* ------------------------------------------------------------ */
 
 func setupScenario2() error {
+	// remove the existing config file
+	//common.RemoveFile(configReader.Name)
+
 	// just setup the values according to the feature file's contents
 	configObject.WorkingHoursDay = 8
 	configObject.ActiveProfile = false
@@ -277,6 +280,9 @@ func arrayfieldShouldYield(fieldName, valueArrayInString string) error {
 /* ------------------------------------------------------------ */
 
 func setupScenario3() error {
+	// remove the existing config file
+	//common.RemoveFile(configReader.Name)
+
 	// just setup the values according to the feature file's contents
 	configObject.Author.LastName = "Wong"
 	configObject.Author.Age = 18

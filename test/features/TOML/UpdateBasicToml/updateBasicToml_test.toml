@@ -1,5 +1,13 @@
 version = "1.1 alpha"
-author = map[author.lastName:"" author.age:0 author.height:0 author.birthday:"0001-01-01T00:00:00Z" attributes64:[] author.likes:[] author.firstName:"" author.luckyNumbers:[] author.registrationDates:[]]
+author.firstName = ""
+author.age = 0
+author.likes = []
+author.registrationDates = []
+author.lastName = ""
+author.height = 0
+author.birthday = "0001-01-01T00:00:00Z"
+author.luckyNumbers = []
+author.attributes64 = []
 workingHoursDay = 0
 activeProfile = false
 lastUpdateTime = "2018-05-01T11:59:59+08:00"

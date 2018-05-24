@@ -2,8 +2,6 @@ package common
 
 import (
 	"strings"
-	"errors"
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -12,8 +10,9 @@ import (
  *	helper method to split the given string to []string
  */
 func CleanseArrayedString(val string) []string {
-	if len(val)>0 && len(strings.TrimSpace(val))>0 {
+	if len(val)>2 && len(strings.TrimSpace(val))>2 {
 		finalVal := val[1:len(val)-1]
+
 		return strings.Split(finalVal, ",")
 	}
 	return []string{}
@@ -35,7 +34,8 @@ func ConvertStringArrayToIntArray(sArray []string) ([]int, error)  {
 		}
 		return iArray, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Failed to convert %v to []int\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []int\n", sArray))
+	return nil, nil
 }
 
 /**
@@ -54,7 +54,8 @@ func ConvertStringArrayToFloat32Array(sArray []string) ([]float32, error)  {
 		}
 		return iArray, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float32\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float32\n", sArray))
+	return nil, nil
 }
 /**
  *	handy method to convert the given []string into []float32
@@ -72,7 +73,8 @@ func ConvertStringArrayToFloat64Array(sArray []string) ([]float64, error)  {
 		}
 		return iArray, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float64\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float64\n", sArray))
+	return nil, nil
 }
 
 /**
@@ -91,7 +93,8 @@ func ConvertStringArrayToBoolArray(sArray []string) ([]bool, error)  {
 		}
 		return iArray, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Failed to convert %v to []bool\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []bool\n", sArray))
+	return nil, nil
 }
 
 /**
@@ -113,7 +116,8 @@ func ConvertStringArrayToTimeArray(sArray []string) ([]time.Time, error)  {
 		}
 		return iArray, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Failed to convert %v to []time.Time\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []time.Time\n", sArray))
+	return nil, nil
 }
 
 /**

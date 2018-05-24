@@ -54,7 +54,7 @@ type Author struct {
 	Height float32 `toml:"author.height"`
 	Birthday time.Time `toml:"author.birthday"`
 	LuckyNumbers []int `toml:"author.luckyNumbers"`
-	Attributes64 []float64 `toml:"attributes64"`
+	Attributes64 []float64 `toml:"author.attributes64"`
 	Likes []bool `toml:"author.likes"`
 	RegistrationDates []time.Time `toml:"author.registrationDates"`
 }
