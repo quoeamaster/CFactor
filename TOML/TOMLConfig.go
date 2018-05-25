@@ -52,12 +52,17 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 	if err == nil {
 		// build the object based on the given Type plus populate the contents loaded into bBytes
 		lines := common.GetLinesFromByteArrayContent(bBytes)
+		ok, err := common.PopulateFieldValues(lines, common.ConfigTypeTOML, ptrConfigObject, t.StructType)
+		if !ok && err!=nil {
+			return ptrConfigObject, err
+		}
+		/*
 		for _, v := range lines {
 			ok, err := common.PopulateFieldValues(v, common.ConfigTypeTOML, ptrConfigObject, t.StructType)
 			if !ok && err!=nil {
 				return ptrConfigObject, err
 			}
-		}
+		}*/
 		return ptrConfigObject, nil
 	}
 	return reflect.Zero(t.StructType), err

@@ -284,6 +284,8 @@ func setupScenario3() error {
 	//common.RemoveFile(configReader.Name)
 
 	// just setup the values according to the feature file's contents
+	configObject.WorkingHoursDay = 12
+
 	configObject.Author.LastName = "Wong"
 	configObject.Author.Age = 18
 	configObject.Author.Height = 166.5
@@ -322,8 +324,35 @@ And child field "Height" should yield "166.5",
 And child field "Birthday" should yield "1980-01-30T00:00:00+08:00",
 */
 func childFieldShouldYield(fieldName, valueInString string) error {
-	fmt.Println(configObject.String())
-	return godog.ErrPending
+	//fmt.Println(fieldName, "=",valueInString)
+	authorRef := configObject.Author
+
+	switch fieldName {
+	case "LastName":
+		if strings.Compare(valueInString, authorRef.LastName) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, authorRef.LastName)
+		}
+	case "Age":
+		sVal := strconv.Itoa(authorRef.Age)
+		if strings.Compare(valueInString, sVal) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, authorRef.Age)
+		}
+	case "Height":
+		sVal := fmt.Sprintf("%v", authorRef.Height)
+		if strings.Compare(valueInString, sVal) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, authorRef.Height)
+		}
+	case "Birthday":
+		tVal := common.FormatTimeToString("", authorRef.Birthday)
+		if strings.Compare(valueInString, tVal) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, tVal)
+		}
+
+
+	default:
+		return fmt.Errorf("non supported field yet [%v]\n", fieldName)
+	}
+	return nil
 }
 /*
 And child array-field "LuckyNumbers" should yield "1,23,908",
@@ -332,12 +361,79 @@ And child array-field "Likes" should yield "true,false,true,false,false",
 And child array-field "RegistrationDates" should yield "1998-01-30T00:00:00+08:00,1990-07-28T00:00:00+00:00",
  */
 func childArrayfieldShouldYield(fieldName, valueInString string) error {
-	return godog.ErrPending
+	//fmt.Println(fieldName,"=",valueInString)
+	authorRef := configObject.Author
+
+	switch fieldName {
+	case "LuckyNumbers":
+		sArr := strings.Split(valueInString, ",")
+		if len(sArr) != len(authorRef.LuckyNumbers) {
+			return fmt.Errorf("[%v] length DOES-NOT match; %v vs %v\n", fieldName, len(sArr), len(authorRef.LuckyNumbers))
+		}
+		for idx, sVal := range sArr {
+			iVal, err := strconv.Atoi(sVal)
+			if err != nil {
+				return fmt.Errorf("[%v] COULD NOT be converted to numbers [%v]\n", fieldName, sVal)
+			}
+			if iVal != authorRef.LuckyNumbers[idx] {
+				return fmt.Errorf("child Array field [%v] expects [%v] BUT yielded [%v]\n",
+					fieldName, iVal, authorRef.LuckyNumbers[idx])
+			}
+		}	// end -- for (sArr iteration)
+	case "Attributes64":
+		sArr := strings.Split(valueInString, ",")
+		if len(sArr) != len(authorRef.Attributes64) {
+			return fmt.Errorf("[%v] length DOES-NOT match; %v vs %v\n", fieldName, len(sArr), len(authorRef.Attributes64))
+		}
+		for idx, sVal := range sArr {
+			fVal, err := strconv.ParseFloat(sVal, 64)
+			if err != nil {
+				return fmt.Errorf("[%v] COULD NOT be converted to numbers [%v]\n", fieldName, sVal)
+			}
+			if float64(fVal) != authorRef.Attributes64[idx] {
+				return fmt.Errorf("child Array field [%v] expects [%v] BUT yielded [%v]\n",
+					fieldName, fVal, authorRef.Attributes64[idx])
+			}
+		}	// end -- for (sArr iteration)
+	case "Likes":
+		sArr := strings.Split(valueInString, ",")
+		if len(sArr) != len(authorRef.Likes) {
+			return fmt.Errorf("[%v] length DOES-NOT match; %v vs %v\n", fieldName, len(sArr), len(authorRef.Likes))
+		}
+		for idx, sVal := range sArr {
+			bVal, err := strconv.ParseBool(sVal)
+			if err != nil {
+				return fmt.Errorf("[%v] COULD NOT be converted to bool [%v]\n", fieldName, sVal)
+			}
+			if bVal != authorRef.Likes[idx] {
+				return fmt.Errorf("child Array field [%v] expects [%v] BUT yielded [%v]\n",
+					fieldName, bVal, authorRef.Likes[idx])
+			}
+		}	// end -- for (sArr iteration)
+	case "RegistrationDates":
+		sArr := strings.Split(valueInString, ",")
+		if len(sArr) != len(authorRef.RegistrationDates) {
+			return fmt.Errorf("[%v] length DOES-NOT match; %v vs %v\n", fieldName, len(sArr), len(authorRef.RegistrationDates))
+		}
+		for idx, sVal := range sArr {
+			tVal, err := common.ParseStringToTime("", sVal)
+			if err != nil {
+				return fmt.Errorf("[%v] COULD NOT be converted to bool [%v]\n", fieldName, sVal)
+			}
+			if !tVal.Equal(authorRef.RegistrationDates[idx]) {
+				return fmt.Errorf("child Array field [%v] expects [%v] BUT yielded [%v]\n",
+					fieldName, tVal, authorRef.RegistrationDates[idx])
+			}
+		}	// end -- for (sArr iteration)
+	default:
+		fmt.Println(authorRef)
+		return fmt.Errorf("non supported field yet [%v]\n", fieldName)
+	}
+	return nil
 }
 
 
 func FeatureContext(s *godog.Suite) {
-
 	// before anything is running
 	s.BeforeSuite(func() {
 		configReader = TOML.NewTOMLConfigImpl("", reflect.TypeOf(TOML2.DemoTOMLConfig{}))

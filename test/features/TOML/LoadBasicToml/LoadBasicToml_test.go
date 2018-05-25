@@ -32,12 +32,12 @@ func loadToml(name string) error {
 	configObject := TOML2.DemoTOMLConfig{ Author: TOML2.Author{} }
 
 	// no overriding parameters supplied
-	cfgInterface, err := configReader.Load(&configObject)
+	_, err := configReader.Load(&configObject)
 	if err != nil {
 		return fmt.Errorf("Error in loading the TOML file. %v\n", err)
 	}
-	config = reflect.ValueOf(cfgInterface).Elem().Interface().(TOML2.DemoTOMLConfig)
-	fmt.Println("\t#",config.String())
+	config = configObject
+	fmt.Println(config.String())
 
 	return nil
 }
@@ -48,6 +48,24 @@ func iShouldBeAbleToAccessTheFieldsFromThisTomlFile() error {
 }
 
 func checkFieldValue(field, value string) error {
+	switch field {
+	case "version":
+		if strings.Compare(config.Version, value) != 0 {
+			return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Version)
+		}
+	case "author.firstName":
+		if strings.Compare(config.Author.FirstName, value) != 0 {
+			return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Author.FirstName)
+		}
+	case "role":
+		if strings.Compare(config.Role, value) != 0 {
+			return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Role)
+		}
+
+	default:
+		return fmt.Errorf("unsupported field [%v]", field)
+	}
+
 	ok, val := configReader.GetStringValueByKey(config, field)
 	if !ok {
 		return fmt.Errorf("given %v's value not FOUND", field)
@@ -85,16 +103,6 @@ func theFloatValueForFieldIs(field string, value float32) error {
 		return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Author.Height)
 	}
 	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, config.Author.Height)
-	/*
-	ok, val := configReader.GetFloatValueByKey(config, field)
-	if !ok {
-		return fmt.Errorf("given %v's value not FOUND", field)
-	}
-	if val==float64(value) {
-		return nil
-	}
-	return fmt.Errorf("field [%v] does not matches with {%v}; value got is (%v)", field, value, val)
-	*/
 }
 
 func theBoolValueForFieldIs(field, value string) error {

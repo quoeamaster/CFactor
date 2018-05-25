@@ -1,11 +1,11 @@
-author.height = 166.5
-author.attributes64 = [12,990.0009]
-author.likes = [true,false,true,false,false]
-author.registrationDates = ["1998-01-30T00:00:00+08:00","1990-07-28T00:00:00Z"]
-author.firstName = ""
 author.lastName = "Wong"
 author.age = 18
+author.height = 166.5
 author.birthday = "1980-01-30T00:00:00+08:00"
+author.attributes64 = [12,990.0009]
+author.registrationDates = ["1998-01-30T00:00:00+08:00","1990-07-28T00:00:00Z"]
+author.firstName = ""
 author.luckyNumbers = [1,23,908]
-workingHoursDay = 0
+author.likes = [true,false,true,false,false]
+workingHoursDay = 12
 activeProfile = false

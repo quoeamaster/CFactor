@@ -36,6 +36,8 @@ const TypeArrayTime = "[]time.Time"
 const TypePartialMap = "map["
 const TypeMapStringInterface = "map[string]interface {}"
 
+const TypePointerSymbol = "*"
+
 type TagStructure struct {
 	CType string
 	Field string
@@ -52,60 +54,173 @@ func NewStructPointerByType(t reflect.Type) reflect.Value {
 	return reflect.Zero(t)
 }
 
-func PopulateFieldValues(ln string, configType string, object interface{}, objectType reflect.Type) (bool, error) {
-	if IsValidPointer(object) == true {
-		// trim the ln (spaces removal)
-		if len(ln)>0 {
-			ln = strings.TrimSpace(ln)
-		}
-		// if configType is not TOML or JSON, treat it as TOML (default)
-		if !(strings.Compare(ConfigTypeTOML, configType) == 0 ||
-			strings.Compare(ConfigTypeJSON, configType) == 0) {
-			configType = ConfigTypeTOML
-		}
+func getStructRefByType(structRefMap map[string]interface{}, structType reflect.Type) interface{} {
+	structTypeString := structType.String()
+	structRef := structRefMap[structTypeString]
 
-		// non empty line (try to process)
-		if len(ln)>0 {
-			// ignore comments
-			if strings.Index(ln, "#") == 0 {
-				return true, nil
-			}
-
-			kv := strings.Split(ln, "=")
-			if len(kv) == 2 {
-				k := strings.TrimSpace(kv[0])
-				v := strings.TrimSpace(kv[1])
-
-				// check if "v" is an array
-				if isValueAnArray(v) {
-					// handle array population plus array type policy
-					populateStringValByFieldName(object, objectType, k, v, true)
-
-				} else {
-					populateStringValByFieldName(object, objectType, k, v, false)
-				}	// end -- if (array???)
-			}
-		}	// end -- if (ln is non empty)
-		return true, nil
+	if structRef == nil {
+		structRef = NewStructPointerByType(structType).Interface()
+		structRefMap[structTypeString] = structRef
 	}
-	return false, errors.New("object / value provided is non-valid")
+	return structRef
 }
 
-
+/**
+ *	helper method to check if the given string is related to an "array" syntax
+ */
 func isValueAnArray(value string) bool {
 	// TODO: might better use regexp...
 	return strings.Index(value, "[")==0 && strings.LastIndex(value, "]")==(len(value)-1)
 }
 
+func PopulateFieldValues(lines []string, configType string, object interface{}, objectType reflect.Type) (bool, error) {
+	if IsValidPointer(object) == true {
+		// a map for storing the inner objects / structs
+		structRefMap := make(map[string]interface{})
+
+		for _, ln := range lines {
+			// trim the lines (spaces removal)
+			if len(ln)>0 {
+				ln = strings.TrimSpace(ln)
+			}
+			// if configType is not TOML or JSON, treat it as TOML (default)
+			if !(strings.Compare(ConfigTypeTOML, configType) == 0 ||
+				strings.Compare(ConfigTypeJSON, configType) == 0) {
+				configType = ConfigTypeTOML
+			}
+			// non empty line (try to process)
+			if len(lines)>0 {
+				// ignore comments
+				if strings.Index(ln, "#") == 0 {
+					// * return true, nil
+					continue
+				}
+				kv := strings.Split(ln, "=")
+				if len(kv) == 2 {
+					k := strings.TrimSpace(kv[0])
+					v := strings.TrimSpace(kv[1])
+
+					// check if "v" is an array
+					if isValueAnArray(v) {
+						// handle array population plus array type policy
+						populateStringValByFieldName(object, objectType, k, v, true, &structRefMap)
+					} else {
+						populateStringValByFieldName(object, objectType, k, v, false, &structRefMap)
+					}	// end -- if (array???)
+				}
+			}	// end -- if (lines is non empty)
+			// * return true, nil
+		}	// end -- for (lines)
+
+		// set back the structRef(s) if any
+		if err := setStructRefsToInterface(&structRefMap, object); err != nil {
+			return false, err
+		}
+	}
+	// * return false, errors.New("object / value provided is non-valid")
+	return true, nil
+}
+
+func setStructRefsToInterface(structRefMap *map[string]interface{}, object interface{}) (error) {
+	structRefMapVal := *structRefMap
+
+	if len(structRefMapVal) > 0 {
+		for sKey, structRef := range structRefMapVal {
+			objVal := reflect.Indirect(reflect.ValueOf(object))
+			objValType := objVal.Type()
+			numFields := objValType.NumField()
+
+			for idx:=0; idx<numFields; idx++ {
+				objMetaField := objValType.Field(idx)
+				objMetaTag := objMetaField.Tag.Get(TagAdditional)
+
+				if strings.Compare(objMetaTag, ConfigTypeParent) == 0 {
+					objField := objVal.Field(idx)
+					structRefName := reflect.TypeOf(structRef).String()
+					structMatchInfo, ok := isStructNameMatched(structRefName, sKey)
+
+					// *TOML.Author vs TOML.Author
+					if !ok {
+						return fmt.Errorf("%v\n", structMatchInfo)
+					}
+					if objField.CanSet() {
+						//fmt.Println("**", structRef, reflect.TypeOf(structRef))
+						//fmt.Println("**2", objField.Type().String())
+						// ** cannot set a Pointer object directly to the field... (struct is non pointer???)
+						objField.Set(reflect.Indirect(reflect.ValueOf(structRef)))
+					}
+				}	// end -- if (found a non primitive field)
+			}	// end -- for (numFields)
+		}	// end -- for (map content iteration)
+	}	// end -- if (len of map is > 0)
+	return nil
+}
+
+/**
+ *	helper method to check if the given names matched (usually either 1 of the names contain a "*"
+ */
+func isStructNameMatched(actualRefName, targetRefName string) (string, bool) {
+	// 4 conditions => a) actual contains * only, b) target contains * only and c) both contains *, both match and no "*"
+	actualRefIsPtr := strings.Index(actualRefName, TypePointerSymbol) == 0
+	targetRefIsPtr := strings.Index(targetRefName, TypePointerSymbol) == 0
+	actualRefIsPtrPrefixedWithPtr := false
+	targetRefIsPtrPrefixedWithPtr := false
+
+	if len(actualRefName)>1 && strings.Compare(actualRefName[1: 2], TypePointerSymbol) == 0 {
+		actualRefIsPtrPrefixedWithPtr = true
+	}
+	if len(targetRefName)>1 && strings.Compare(targetRefName[1: 2], TypePointerSymbol) == 0 {
+		targetRefIsPtrPrefixedWithPtr = true
+	}
+
+	if actualRefIsPtr && !targetRefIsPtr {
+		if trimmed := actualRefName[1:]; strings.Compare(trimmed, targetRefName) == 0 {
+			return "", true
+		}
+	} else if targetRefIsPtr && !actualRefIsPtr {
+		if trimmed := targetRefName[1:]; strings.Compare(trimmed, actualRefName) == 0 {
+			return "", true
+		}
+	} else if actualRefIsPtr && targetRefIsPtr {
+		if actualRefIsPtrPrefixedWithPtr && !targetRefIsPtrPrefixedWithPtr {
+			trimmedActualName := actualRefName[2:]
+			trimmedTargetName := targetRefName[1:]
+
+			if strings.Compare(trimmedActualName, trimmedTargetName) == 0 {
+				return "", true
+			}
+		} else if targetRefIsPtrPrefixedWithPtr && !actualRefIsPtrPrefixedWithPtr {
+			trimmedActualName := actualRefName[1:]
+			trimmedTargetName := targetRefName[2:]
+
+			if strings.Compare(trimmedActualName, trimmedTargetName) == 0 {
+				return "", true
+			}
+		} else {
+			return fmt.Sprintf("non supported case both name starts with a [%v] though; %v vs %v", TypePointerSymbol, actualRefName, targetRefName), false
+		}
+	} else {
+		// maybe both doesn't contain "*"
+		if strings.Compare(actualRefName, targetRefName) == 0 {
+			return "", true
+		}
+	}
+	return fmt.Sprintf("non supported case both; %v vs %v", actualRefName, targetRefName), false
+}
+
+
 /*
  *	population of a string field by fieldName
  */
-func populateStringValByFieldName(object interface{}, objectType reflect.Type, k string, v string, isArray bool) {
+func populateStringValByFieldName(
+	object interface{}, objectType reflect.Type, key string, value string,
+	isArray bool, structRefMap *map[string]interface{}) {
+
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object).Elem()
 
 	// strip the " symbol if any
-	v = strings.Replace(v, "\"", "", -1)
+	value = strings.Replace(value, "\"", "", -1)
 
 	for i:=0; i<fLen; i++ {
 		typeField := objectType.Field(i)
@@ -116,10 +231,35 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 			 *	as the reflected value is not a real object instance...
 			 *	NEED to use alternatives (recursively populate...)
 			 */
-			structObj := NewStructPointerByType(objVal.Field(i).Type())
-			paramsMap := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), k, v)
+			// check if any related struct reference already there...
+			innerObjInterface := getStructRefByType(*structRefMap, objVal.Field(i).Type())
+			innerObjVal := reflect.ValueOf(innerObjInterface)
+			innerObjValIndirected := reflect.Indirect(innerObjVal)
+			innerObjType := innerObjValIndirected.Type()
 
-// TODO: indiectVal.Interface()......
+			numFieldsInner := innerObjType.NumField()
+
+			for i2:=0; i2<numFieldsInner; i2++ {
+				innerObjField := innerObjType.Field(i2)
+				innerObjTags := innerObjField.Tag.Get(TagTOML)
+
+				// check if the tags match the toml name
+				if strings.Compare(innerObjTags, key) == 0 {
+					setValueByDataType(
+						innerObjValIndirected.Field(i2).Type().String(),
+						innerObjValIndirected.Field(i2), key, value, isArray)
+					break
+				}	// end -- if (tags matched)
+			}	// end -- for (innerObject iteration)
+
+
+			// * innerObjInterface := NewStructPointerByType(objVal.Field(i).Type()).Interface()
+			//innerObjType := reflect.TypeOf(innerObjInterface)
+			/*
+			structObj := NewStructPointerByType(objVal.Field(i).Type())
+			paramsMap := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), key, value)
+
+
 			structField := objVal.Field(i)
 			if objVal.CanSet() && structField.CanSet() {
 				methodName := tags.Get(TagSet)
@@ -133,13 +273,14 @@ func populateStringValByFieldName(object interface{}, objectType reflect.Type, k
 					panic(outVals[1])
 				}	// end -- if (have error)
 			}	// end -- if (canSet)
+			*/
 
 		} else {
-			if strings.Compare(tags.Get(TagTOML), k) == 0 {
+			if strings.Compare(tags.Get(TagTOML), key) == 0 {
 				// ### reflect.ValueOf(&r).Elem().Field(i).SetInt( i64 )
-				setValueByDataType(typeField.Type.String(), objVal.Field(i), k, v, isArray)
+				setValueByDataType(typeField.Type.String(), objVal.Field(i), key, value, isArray)
 				break
-			}	// end -- if (k matched)
+			}	// end -- if (key matched)
 		}	// end -- if (additional_info == parent)
 	}	// end -- for (fLen)
 }
