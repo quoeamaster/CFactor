@@ -433,6 +433,26 @@ func childArrayfieldShouldYield(fieldName, valueInString string) error {
 }
 
 
+/* ------------------------------------------------------------ */
+/*	scenario 4) Persist a bunch of fields to the target TOML	*/
+/*	  (multiple levels of structs)								*/
+/* ------------------------------------------------------------ */
+
+func setupScenario4() error {
+	// TODO: create a new struct with multiple level of structs
+	return godog.ErrPending
+}
+
+func multiChildFieldShouldYield(fieldName, valueInString string) error {
+	return godog.ErrPending
+}
+
+func multiChildArrayfieldShouldYield(fieldName, valueInString string) error {
+	return godog.ErrPending
+}
+
+
+
 func FeatureContext(s *godog.Suite) {
 	// before anything is running
 	s.BeforeSuite(func() {
@@ -463,4 +483,10 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^an in-memory configuration object with child struct;$`, setupScenario3)
 	s.Step(`^child field "([^"]*)" should yield "([^"]*)",$`, childFieldShouldYield)
 	s.Step(`^child array-field "([^"]*)" should yield "([^"]*)",$`, childArrayfieldShouldYield)
+
+	// scenario 4
+	s.Step(`^an in-memory configuration object with multile levels of struct;$`, setupScenario4)
+	s.Step(`^multi child field "([^"]*)" should yield "([^"]*)",$`, multiChildFieldShouldYield)
+	s.Step(`^multi child array-field "([^"]*)" should yield "([^"]*)",$`, multiChildArrayfieldShouldYield)
+
 }
