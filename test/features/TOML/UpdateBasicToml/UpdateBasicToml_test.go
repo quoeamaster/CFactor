@@ -191,6 +191,15 @@ func fieldShouldYield(fieldName, valueInString string) error {
 		if strings.Compare(timeString, valueInString) != 0 {
 			return fmt.Errorf("expected [%v] for value [%v] BUT got [%v]\n", fieldName, valueInString, timeString)
 		}
+	// ** TransactionRecord related **
+	case "amount":
+		fVal, err := strconv.ParseFloat(valueInString, 32)
+		if err != nil {
+			return fmt.Errorf("could not convert [%v]'s value [%v] to float32\n", fieldName, valueInString)
+		}
+		if float32(fVal) != transObject.Amount {
+			return fmt.Errorf("expected [%v] for value [%v] BUT got [%v]\n", fieldName, fVal, transObject.Amount)
+		}
 
 	default:
 		return fmt.Errorf("non support field yet => %v", fieldName)
@@ -438,9 +447,67 @@ func childArrayfieldShouldYield(fieldName, valueInString string) error {
 /*	  (multiple levels of structs)								*/
 /* ------------------------------------------------------------ */
 
+var transObject TOML2.TransactionRecord
+
 func setupScenario4() error {
-	// TODO: create a new struct with multiple level of structs
-	return godog.ErrPending
+	// create a new struct with multiple level of structs
+	transObject = TOML2.TransactionRecord{}
+	brokerObject := TOML2.Broker{}
+	clientObject := TOML2.Client{}
+	clientAddress := TOML2.ClientAddress{}
+	geopoint := TOML2.GeoPoint{}
+
+	transObject.Amount = 2359.91
+
+	brokerObject.Id = "esdn-342-ab-melb-90au"
+	brokerObject.Licences = []string{ "audit-approved", "cpa-approved", "it-approved" }
+	tVal, err := common.ParseStringToTime("", "2027-12-31T00:00:00+00:00")
+	if err != nil {
+		return fmt.Errorf("could not convert '%v' to time.Time\n", "2027-12-31T00:00:00+00:00")
+	}
+	brokerObject.LicenceExpiryDate = tVal
+
+	clientObject.FullName = "Jackie Kim"
+	clientAddress.City = "Seoul"
+	geopoint.Lat = 37.532600
+	geopoint.LatLonArr = []float64{ 37.532600, 127.024612 }
+
+	// setup struct hierarchy
+	transObject.Broker = brokerObject
+	clientAddress.GeoPoint = geopoint
+	clientObject.Address = clientAddress
+	transObject.Client = clientObject
+
+	fmt.Println("preview => \n", transObject.String())
+
+	return nil
+}
+
+/*
+And field "Amount" should yield "2359.91",
+And child field "broker.id" should yield "esdn-342-ab-melb-90au",
+And child field "broker.licenceExpiryDate" should yield "2027-12-31T00:00:00+00:00",
+And child array-field "broker.licences" should yield "audit-approved,cpa-approved,it-approved",
+And child field "client.fullname" should yield "Jackie Kim",
+And multi child field "client.address.city" should yield "Seoul",
+And multi child field "client.address.geopoint.lat" should yield "37.532600",
+And multi child array-field "client.address.geopoint.latLonArr" should yield "37.532600,127.024612",
+ */
+
+func persistMultiStructToToml(filename string) error {
+	err := configReader.Save(filename, reflect.TypeOf(transObject), transObject)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func reloadTomlToMultiStruct(filename string) error {
+	configReader.Name = filename
+	_, err := configReader.Load(&transObject)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func multiChildFieldShouldYield(fieldName, valueInString string) error {
@@ -486,6 +553,8 @@ func FeatureContext(s *godog.Suite) {
 
 	// scenario 4
 	s.Step(`^an in-memory configuration object with multile levels of struct;$`, setupScenario4)
+	s.Step(`^persisted the changes of multi struct to "([^"]*)";$`, persistMultiStructToToml)
+	s.Step(`^reload the multi struct from "([^"]*)" \.\.\.$`, reloadTomlToMultiStruct)
 	s.Step(`^multi child field "([^"]*)" should yield "([^"]*)",$`, multiChildFieldShouldYield)
 	s.Step(`^multi child array-field "([^"]*)" should yield "([^"]*)",$`, multiChildArrayfieldShouldYield)
 

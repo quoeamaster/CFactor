@@ -121,7 +121,6 @@ func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject
 				if err != nil {
 					return err
 				}
-
 				if !bMatched {
 					cfgLine = fmt.Sprintf("%v = %v\n", key, value)
 				}	// end -- if (non array + non primitive)
@@ -230,9 +229,9 @@ func translateArrayValueToStringFormat(value interface{}, key string) (string, b
 }
 
 func translateNonPrimitiveValueToString(value interface{}) (string, bool, error) {
+	var err error
 	bMatched := false
 	sType := reflect.TypeOf(value).String()
-	//bBuffer := bytes.NewBuffer(make([]byte, 0))	// create a bytes.Buffer for string concatenation
 	var bBuffer bytes.Buffer	// create a bytes.Buffer for string concatenation
 
 	// is it a map?
@@ -244,12 +243,23 @@ func translateNonPrimitiveValueToString(value interface{}) (string, bool, error)
 			for mKey, mVal := range valueMap {
 				cfgLine, bMatched2 := translateArrayValueToStringFormat(mVal, mKey)
 				if !bMatched2 {
-					// TODO: handle non array + non primitive (struct)
-					_, err := bBuffer.WriteString(fmt.Sprintf("%v = %v\n", mKey, mVal))
+					// handle non array + non primitive (struct)
+					cfgLine, bMatched2, err = translateNonPrimitiveValueToString(mVal)
 					if err != nil {
 						return "", false, err
+					} else {
+						_, err := bBuffer.WriteString(cfgLine)
+						if err != nil {
+							return "", false, err
+						}
 					}
-
+					// primitive probably
+					if !bMatched2 {
+						_, err := bBuffer.WriteString(fmt.Sprintf("%v = %v\n", mKey, mVal))
+						if err != nil {
+							return "", false, err
+						}
+					}	// end -- if (primitive probably)
 				} else {
 					_, err := bBuffer.WriteString(cfgLine)
 					if err != nil {

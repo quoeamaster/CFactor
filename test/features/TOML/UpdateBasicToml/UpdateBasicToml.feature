@@ -45,16 +45,15 @@ Feature: TOML Access (Basic use cases)
 
   Scenario: 4) Persist a bunch of fields to the target TOML (multiple levels of structs)
     Given an in-memory configuration object with multile levels of struct;
-    When persisted the changes to the toml file named "updateBasicToml_test4.toml";
-    Then reload the "updateBasicToml_test4.toml" ...
-    And field "WorkingHoursDay" should yield "17",
-    And child field "LastName" should yield "Wong",
-    And child field "Age" should yield "18",
-    And child field "Birthday" should yield "1980-01-30T00:00:00+08:00",
-    And child array-field "LuckyNumbers" should yield "1,23,908",
-    And child array-field "Likes" should yield "true,false,true,false,false",
-    And child array-field "RegistrationDates" should yield "1998-01-30T00:00:00+08:00,1990-07-28T00:00:00+00:00",
-    And multi child field "abc.def" should yield "2018",
-    And multi child array-field "def.ghi" should yield "1784-07-28T04:16:52+00:00",
+    When persisted the changes of multi struct to "updateBasicToml_test4.toml";
+    Then reload the multi struct from "updateBasicToml_test4.toml" ...
+    And field "amount" should yield "2359.91",
+    And child field "broker.id" should yield "esdn-342-ab-melb-90au",
+    And child field "broker.licenceExpiryDate" should yield "2027-12-31T00:00:00+00:00",
+    And child array-field "broker.licences" should yield "audit-approved,cpa-approved,it-approved",
+    And child field "client.fullname" should yield "Jackie Kim",
+    And multi child field "client.address.city" should yield "Seoul",
+    And multi child field "client.address.geopoint.lat" should yield "37.532600",
+    And multi child array-field "client.address.geopoint.latLonArr" should yield "37.532600,127.024612",
 
 

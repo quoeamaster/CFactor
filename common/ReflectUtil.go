@@ -104,6 +104,7 @@ func PopulateFieldValues(lines []string, configType string, object interface{}, 
 					if isValueAnArray(v) {
 						// handle array population plus array type policy
 						populateStringValByFieldName(object, objectType, k, v, true, &structRefMap)
+fmt.Println(k, "=", v, "=>",structRefMap)
 					} else {
 						populateStringValByFieldName(object, objectType, k, v, false, &structRefMap)
 					}	// end -- if (array???)
@@ -126,6 +127,7 @@ func setStructRefsToInterface(structRefMap *map[string]interface{}, object inter
 
 	if len(structRefMapVal) > 0 {
 		for sKey, structRef := range structRefMapVal {
+fmt.Println("ee ",sKey,"-->",structRef)
 			objVal := reflect.Indirect(reflect.ValueOf(object))
 			objValType := objVal.Type()
 			numFields := objValType.NumField()
@@ -133,13 +135,15 @@ func setStructRefsToInterface(structRefMap *map[string]interface{}, object inter
 			for idx:=0; idx<numFields; idx++ {
 				objMetaField := objValType.Field(idx)
 				objMetaTag := objMetaField.Tag.Get(TagAdditional)
-
+fmt.Println(objMetaField.Tag.Get(TagTOML))
+// TODO: check parent + toml tag value for a real "MATCH"
 				if strings.Compare(objMetaTag, ConfigTypeParent) == 0 {
 					objField := objVal.Field(idx)
 					structRefName := reflect.TypeOf(structRef).String()
+fmt.Println("$ b4 structName match, ",structRefName, "vs", sKey)
 					structMatchInfo, ok := isStructNameMatched(structRefName, sKey)
-
-					// *TOML.Author vs TOML.Author
+fmt.Println("$ after structName match", ok)
+					// eg. *TOML.Author vs TOML.Author
 					if !ok {
 						return fmt.Errorf("%v\n", structMatchInfo)
 					}
@@ -147,7 +151,9 @@ func setStructRefsToInterface(structRefMap *map[string]interface{}, object inter
 						//fmt.Println("**", structRef, reflect.TypeOf(structRef))
 						//fmt.Println("**2", objField.Type().String())
 						// ** cannot set a Pointer object directly to the field... (struct is non pointer???)
+fmt.Println("# b4 setField with struct ", objField, "==>", reflect.ValueOf(structRef).String(), reflect.ValueOf(structRef).Type())
 						objField.Set(reflect.Indirect(reflect.ValueOf(structRef)))
+fmt.Println("# after setField with struct ")
 					}
 				}	// end -- if (found a non primitive field)
 			}	// end -- for (numFields)
@@ -236,7 +242,7 @@ func populateStringValByFieldName(
 			innerObjVal := reflect.ValueOf(innerObjInterface)
 			innerObjValIndirected := reflect.Indirect(innerObjVal)
 			innerObjType := innerObjValIndirected.Type()
-
+//fmt.Println("ee structRef => ", objVal.Field(i).Type(), structRefMap)
 			numFieldsInner := innerObjType.NumField()
 
 			for i2:=0; i2<numFieldsInner; i2++ {
@@ -276,6 +282,7 @@ func populateStringValByFieldName(
 			*/
 
 		} else {
+//fmt.Println("ff simple fields - ", key, "vs", value)
 			if strings.Compare(tags.Get(TagTOML), key) == 0 {
 				// ### reflect.ValueOf(&r).Elem().Field(i).SetInt( i64 )
 				setValueByDataType(typeField.Type.String(), objVal.Field(i), key, value, isArray)
