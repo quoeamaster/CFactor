@@ -152,7 +152,7 @@ func (o *GeoPoint) String() string {
 
 
 /* -------------------- */
-/*	lifecycle hooks		*/
+/*	lifecycle hooks     */
 /* -------------------- */
 
 func (o *TransactionRecord) SetStructsReferences(structRefMap *map[string]interface{}) (err error) {
