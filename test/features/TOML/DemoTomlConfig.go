@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 	"CFactor/common"
+	"reflect"
 )
 
 /*
@@ -207,4 +208,31 @@ func (d *DemoTOMLConfig) SetAuthor(p map[string]string) (bool, error) {
 	//fmt.Println("checkpoint", authorStruct)
 	//d.Author = authorStruct
 	*/
+}
+
+/* -------------------- */
+/*	lifecycle hooks		*/
+/* -------------------- */
+
+func (o *DemoTOMLConfig) SetStructsReferences(structRefMap *map[string]interface{}) (err error) {
+	structRefMapVal := *structRefMap
+	if len(structRefMapVal)==0 {
+		return nil
+	}
+	for key, structRef := range structRefMapVal {
+		switch key {
+		case "TOML.Author":
+			o.Author = reflect.Indirect(reflect.ValueOf(structRef)).Interface().(Author)
+		default:
+			return fmt.Errorf("unknown struct type! [%v]", key)
+		}
+	}	// end -- for (structRef)
+
+	// recovery if necessary
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+	return nil
 }

@@ -42,7 +42,8 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 				// runtime error, check if anything could be helped to continue the program
 				panic(r)
 			}
-			err = r.(error)
+			//err = r.(error)
+			err = fmt.Errorf("%v", r)
 		}
 	}()
 

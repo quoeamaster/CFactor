@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"fmt"
 	"time"
+	"CFactor/interfaces"
 )
 
 const ConfigTypeTOML = "CFG_T"
@@ -104,7 +105,7 @@ func PopulateFieldValues(lines []string, configType string, object interface{}, 
 					if isValueAnArray(v) {
 						// handle array population plus array type policy
 						populateStringValByFieldName(object, objectType, k, v, true, &structRefMap)
-fmt.Println(k, "=", v, "=>",structRefMap)
+//fmt.Println(k, "=", v, "=>",structRefMap)
 					} else {
 						populateStringValByFieldName(object, objectType, k, v, false, &structRefMap)
 					}	// end -- if (array???)
@@ -114,7 +115,9 @@ fmt.Println(k, "=", v, "=>",structRefMap)
 		}	// end -- for (lines)
 
 		// set back the structRef(s) if any
-		if err := setStructRefsToInterface(&structRefMap, object); err != nil {
+//fmt.Println("** final structMap", len(structRefMap), "value=>", structRefMap)
+		// if err := setStructRefsToInterface(&structRefMap, object); err != nil {
+		if err := setStructRefsToInterfaceByLifeCycleHooks(&structRefMap, object); err != nil {
 			return false, err
 		}
 	}
@@ -122,43 +125,80 @@ fmt.Println(k, "=", v, "=>",structRefMap)
 	return true, nil
 }
 
+func getLifeCycleHookMethodByName(methodName string, object interface{}) reflect.Value {
+	objVal := reflect.ValueOf(object)
+
+	return objVal.MethodByName(methodName)
+}
+
+// TODO: to remove the sticky dependency of MethodSetStructsReference !!!
+func setStructRefsToInterfaceByLifeCycleHooks(structRefMap *map[string]interface{}, object interface{}) (error) {
+	// use the ugly approach to setStructs through relection + method invocation
+	methodVal := getLifeCycleHookMethodByName(interfaces.MethodSetStructsReference, object)
+	if !methodVal.IsValid() {
+		return fmt.Errorf("unknown method [%v]", interfaces.MethodSetStructsReference)
+	}
+	methodValType := methodVal.Type()
+	// create num of arguments
+	args := make([]reflect.Value, methodValType.NumIn())
+	args[0] = reflect.ValueOf(structRefMap)
+	outArgs := methodVal.Call(args)
+
+	if len(outArgs) > 0 {
+		if !outArgs[0].IsNil() {
+			return outArgs[0].Interface().(error)
+		}
+	}
+	return nil
+}
+
 func setStructRefsToInterface(structRefMap *map[string]interface{}, object interface{}) (error) {
 	structRefMapVal := *structRefMap
 
-	if len(structRefMapVal) > 0 {
-		for sKey, structRef := range structRefMapVal {
-fmt.Println("ee ",sKey,"-->",structRef)
-			objVal := reflect.Indirect(reflect.ValueOf(object))
-			objValType := objVal.Type()
-			numFields := objValType.NumField()
+	if len(structRefMapVal) == 0 {
+		return nil
+	}
 
-			for idx:=0; idx<numFields; idx++ {
-				objMetaField := objValType.Field(idx)
-				objMetaTag := objMetaField.Tag.Get(TagAdditional)
-fmt.Println(objMetaField.Tag.Get(TagTOML))
-// TODO: check parent + toml tag value for a real "MATCH"
-				if strings.Compare(objMetaTag, ConfigTypeParent) == 0 {
-					objField := objVal.Field(idx)
+	for sKey, structRef := range structRefMapVal {
+//fmt.Println("ee ",sKey,"-->",structRef, reflect.TypeOf(structRef))
+		objVal := reflect.Indirect(reflect.ValueOf(object))
+		objValType := objVal.Type()
+		numFields := objValType.NumField()
+
+		for idx:=0; idx<numFields; idx++ {
+			objMetaField := objValType.Field(idx)
+			objMetaTag := objMetaField.Tag.Get(TagAdditional)
+//fmt.Println(objMetaField.Tag.Get(TagTOML), " type ->", objVal.Field(idx).Type())
+			// check parent + toml tag value for a real "MATCH"
+			if strings.Compare(objMetaTag, ConfigTypeParent) == 0 {
+				objField := objVal.Field(idx)
+				if strings.Compare(objVal.Field(idx).Type().String(), sKey) == 0 {
 					structRefName := reflect.TypeOf(structRef).String()
-fmt.Println("$ b4 structName match, ",structRefName, "vs", sKey)
+					//fmt.Println("$ b4 structName match, ",structRefName, "vs", sKey)
 					structMatchInfo, ok := isStructNameMatched(structRefName, sKey)
-fmt.Println("$ after structName match", ok)
+					//fmt.Println("$ after structName match", ok)
 					// eg. *TOML.Author vs TOML.Author
 					if !ok {
 						return fmt.Errorf("%v\n", structMatchInfo)
 					}
+//fmt.Println(objField.Addr())
 					if objField.CanSet() {
-						//fmt.Println("**", structRef, reflect.TypeOf(structRef))
-						//fmt.Println("**2", objField.Type().String())
 						// ** cannot set a Pointer object directly to the field... (struct is non pointer???)
-fmt.Println("# b4 setField with struct ", objField, "==>", reflect.ValueOf(structRef).String(), reflect.ValueOf(structRef).Type())
 						objField.Set(reflect.Indirect(reflect.ValueOf(structRef)))
-fmt.Println("# after setField with struct ")
+						//fmt.Println("# after setField with struct ")
 					}
-				}	// end -- if (found a non primitive field)
-			}	// end -- for (numFields)
-		}	// end -- for (map content iteration)
-	}	// end -- if (len of map is > 0)
+				} else {
+					// if not match, try to check recursively if this struct might contains the required struct
+					//objPtr := objField.Interface()
+					err := setStructRefsToInterface(structRefMap, objField.Interface())
+					if err != nil {
+						return err
+					}
+				}	// end -- if (keys matched)
+			}	// end -- if (found a non primitive field)
+		}	// end -- for (numFields)
+	}	// end -- for (map content iteration)
+
 	return nil
 }
 
@@ -223,8 +263,9 @@ func populateStringValByFieldName(
 	isArray bool, structRefMap *map[string]interface{}) {
 
 	fLen := objectType.NumField()
-	objVal := reflect.ValueOf(object).Elem()
-
+	//objVal := reflect.ValueOf(object).Elem()
+	objVal := reflect.Indirect(reflect.ValueOf(object))
+//fmt.Println("aa", objVal, objectType, " -> ", key, value, fLen)
 	// strip the " symbol if any
 	value = strings.Replace(value, "\"", "", -1)
 
@@ -233,6 +274,7 @@ func populateStringValByFieldName(
 		tags := typeField.Tag
 
 		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent) == 0 {
+//fmt.Println("bb", key,"=", value," tagToml =>", tags.Get(TagTOML), " FIELDNAME => ", typeField.Name, " type =>", objectType)
 			/*
 			 *	as the reflected value is not a real object instance...
 			 *	NEED to use alternatives (recursively populate...)
@@ -242,45 +284,29 @@ func populateStringValByFieldName(
 			innerObjVal := reflect.ValueOf(innerObjInterface)
 			innerObjValIndirected := reflect.Indirect(innerObjVal)
 			innerObjType := innerObjValIndirected.Type()
-//fmt.Println("ee structRef => ", objVal.Field(i).Type(), structRefMap)
 			numFieldsInner := innerObjType.NumField()
 
 			for i2:=0; i2<numFieldsInner; i2++ {
 				innerObjField := innerObjType.Field(i2)
 				innerObjTags := innerObjField.Tag.Get(TagTOML)
-
-				// check if the tags match the toml name
-				if strings.Compare(innerObjTags, key) == 0 {
-					setValueByDataType(
-						innerObjValIndirected.Field(i2).Type().String(),
-						innerObjValIndirected.Field(i2), key, value, isArray)
-					break
-				}	// end -- if (tags matched)
+				// TODO: check if it is parent as well??? recursive calling method to populate values (print key, value for confirm)
+				if strings.Compare(ConfigTypeParent, innerObjField.Tag.Get(TagAdditional)) == 0 {
+					//innerStructObj := innerObjValIndirected.Field(i2).Interface()
+					innerStructObj := innerObjValIndirected.Interface()
+//fmt.Println("ff", reflect.TypeOf(innerStructObj))
+					populateStringValByFieldName(innerStructObj, reflect.TypeOf(innerStructObj), key, value, isValueAnArray(value), structRefMap)
+//fmt.Println("cc", innerStructObj, "typeof-", reflect.TypeOf(innerStructObj), "map =", structRefMap)
+				} else {
+					//fmt.Println("bb inner", innerObjField.Tag.Get(TagAdditional), innerObjField.Name)
+					// check if the tags match the toml name
+					if strings.Compare(innerObjTags, key) == 0 {
+						setValueByDataType(
+							innerObjValIndirected.Field(i2).Type().String(),
+							innerObjValIndirected.Field(i2), key, value, isArray)
+						break
+					}	// end -- if (tags matched)
+				}	// end -- if (parent found ??)
 			}	// end -- for (innerObject iteration)
-
-
-			// * innerObjInterface := NewStructPointerByType(objVal.Field(i).Type()).Interface()
-			//innerObjType := reflect.TypeOf(innerObjInterface)
-			/*
-			structObj := NewStructPointerByType(objVal.Field(i).Type())
-			paramsMap := populateStringValueByFieldNameUnderChildStruct(structObj.Type().Elem(), key, value)
-
-
-			structField := objVal.Field(i)
-			if objVal.CanSet() && structField.CanSet() {
-				methodName := tags.Get(TagSet)
-				methodRef := reflect.ValueOf(object).MethodByName(methodName)
-
-				inParams := make([]reflect.Value, methodRef.Type().NumIn())
-				inParams[0]=reflect.ValueOf(paramsMap)
-
-				outVals := methodRef.Call(inParams)
-				if outVals[0].Bool() == false {
-					panic(outVals[1])
-				}	// end -- if (have error)
-			}	// end -- if (canSet)
-			*/
-
 		} else {
 //fmt.Println("ff simple fields - ", key, "vs", value)
 			if strings.Compare(tags.Get(TagTOML), key) == 0 {

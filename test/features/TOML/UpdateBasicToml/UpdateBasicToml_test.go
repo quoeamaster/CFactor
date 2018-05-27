@@ -356,7 +356,23 @@ func childFieldShouldYield(fieldName, valueInString string) error {
 		if strings.Compare(valueInString, tVal) != 0 {
 			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, tVal)
 		}
-
+	// *** transactionRecord related ***
+	case "broker.id":
+		if strings.Compare(valueInString, transObject.Broker.Id) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, transObject.Broker.Id)
+		}
+	case "broker.licenceExpiryDate":
+		tVal, err := common.ParseStringToTime("", valueInString)
+		if err != nil {
+			return fmt.Errorf("child field %v could NOT be convertible into time.Time [%v]\n", fieldName, valueInString)
+		}
+		if !tVal.Equal(transObject.Broker.LicenceExpiryDate) {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, tVal, transObject.Broker.LicenceExpiryDate)
+		}
+	case "client.fullname":
+		if strings.Compare(valueInString, transObject.Client.FullName) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, transObject.Client.FullName)
+		}
 
 	default:
 		return fmt.Errorf("non supported field yet [%v]\n", fieldName)
@@ -434,6 +450,19 @@ func childArrayfieldShouldYield(fieldName, valueInString string) error {
 					fieldName, tVal, authorRef.RegistrationDates[idx])
 			}
 		}	// end -- for (sArr iteration)
+	// *** transactionRecord related ***
+	case "broker.licences":
+		sArr := strings.Split(valueInString, ",")
+		if len(sArr) != len(transObject.Broker.Licences) {
+			return fmt.Errorf("[%v] length DOES-NOT match; %v vs %v\n", fieldName, len(sArr), len(transObject.Broker.Licences))
+		}
+		for idx, sVal := range sArr {
+			if strings.Compare(sVal, transObject.Broker.Licences[idx]) != 0 {
+				return fmt.Errorf("child Array field [%v] expects [%v] BUT yielded [%v]\n",
+					fieldName, sVal, transObject.Broker.Licences[idx])
+			}
+		}	// end -- for (sArr iteration)
+
 	default:
 		fmt.Println(authorRef)
 		return fmt.Errorf("non supported field yet [%v]\n", fieldName)
@@ -476,12 +505,48 @@ func setupScenario4() error {
 	transObject.Broker = brokerObject
 	clientAddress.GeoPoint = geopoint
 	clientObject.Address = clientAddress
+	// TODO: testing on Ptr instead of struct value
+	//clientObject.AddressPtr = &clientAddress
 	transObject.Client = clientObject
 
 	fmt.Println("preview => \n", transObject.String())
 
+	// TESTING TODO
+	//doPtrTest()
+
 	return nil
 }
+/*
+func doPtrTest() {
+	instance := PtrTest{ Name: "hero" }
+	instance.InnerTest = &PtrInnerTest{ Id: "1233" }
+	fmt.Println(instance)
+
+	newInnerTest := PtrInnerTest{ Id: "ssbdc" }
+	newInnerTestVal := reflect.ValueOf(newInnerTest)
+	newInnerTestValPtr := reflect.ValueOf(&newInnerTest)
+
+	rInstance := reflect.ValueOf(instance)
+	fmt.Println(rInstance.CanSet(), "can set PtrTest directly??")
+
+	rInstanceInnerTest := reflect.ValueOf(instance.InnerTest)
+	fmt.Println(rInstanceInnerTest.CanSet(), "can set PtrTest.innerTest directly??")
+
+	rInstanceInnerTestPtr := rInstance.FieldByName("InnerTest")
+	fmt.Println(rInstanceInnerTestPtr.CanSet(), "can set PtrTest.innerTest Field directly??")
+
+	rInstanceInnerTest.Set(newInnerTestValPtr)
+	rInstanceInnerTest.Set(newInnerTestVal)
+}
+
+type PtrTest struct {
+	Name string
+	InnerTest *PtrInnerTest
+}
+type PtrInnerTest struct {
+	Id string
+}
+*/
 
 /*
 And field "Amount" should yield "2359.91",
@@ -502,7 +567,10 @@ func persistMultiStructToToml(filename string) error {
 	return nil
 }
 func reloadTomlToMultiStruct(filename string) error {
+	// MUST update the "filename" and "structType" if not... could not be able to parse the config file
 	configReader.Name = filename
+	configReader.StructType = reflect.TypeOf(transObject)
+
 	_, err := configReader.Load(&transObject)
 	if err != nil {
 		return err
@@ -511,11 +579,54 @@ func reloadTomlToMultiStruct(filename string) error {
 }
 
 func multiChildFieldShouldYield(fieldName, valueInString string) error {
-	return godog.ErrPending
+	/*
+	fmt.Println("client",transObject.Client.String())
+	fmt.Println("client.address",transObject.Client.Address.String())
+	fmt.Println("client.address.geopoint",transObject.Client.Address.GeoPoint.String())
+	*/
+	switch fieldName {
+	case "client.address.geopoint.lat":
+		fVal, err := strconv.ParseFloat(valueInString, 64)
+		if err != nil {
+			return fmt.Errorf("child field %v could not be convertible to float64 (%v)", fieldName, valueInString)
+		}
+		if fVal != transObject.Client.Address.GeoPoint.Lat {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, transObject.Client.Address.GeoPoint.Lat)
+		}
+	case "client.address.city":
+		if strings.Compare(valueInString, transObject.Client.Address.City) != 0 {
+			return fmt.Errorf("child field [%v] expects [%v] BUT yielded [%v]\n", fieldName, valueInString, transObject.Client.Address.City)
+		}
+	default:
+		return fmt.Errorf("non supported field yet {%v}", fieldName)
+	}
+	return nil
 }
 
 func multiChildArrayfieldShouldYield(fieldName, valueInString string) error {
-	return godog.ErrPending
+	switch fieldName {
+	case "client.address.geopoint.latLonArr":
+		sArr := strings.Split(valueInString, ",")
+		if len(sArr) != len(transObject.Client.Address.GeoPoint.LatLonArr) {
+			return fmt.Errorf("[%v] length DOES-NOT match; %v vs %v\n",
+				fieldName, len(sArr),
+				len(transObject.Client.Address.GeoPoint.LatLonArr))
+		}
+		for idx, sVal := range sArr {
+			fVal, err := strconv.ParseFloat(sVal, 64)
+			if err != nil {
+				return fmt.Errorf("could not convert [%v] to float\n", sVal)
+			}
+			if fVal != transObject.Client.Address.GeoPoint.LatLonArr[idx] {
+				return fmt.Errorf("child Array field [%v] expects [%v] BUT yielded [%v]\n",
+					fieldName, sVal, transObject.Client.Address.GeoPoint.LatLonArr[idx])
+			}
+		}	// end -- for (sArr iteration)
+
+	default:
+		return fmt.Errorf("non supported field yet {%v}", fieldName)
+	}
+	return nil
 }
 
 

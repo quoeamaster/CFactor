@@ -52,8 +52,9 @@ Feature: TOML Access (Basic use cases)
     And child field "broker.licenceExpiryDate" should yield "2027-12-31T00:00:00+00:00",
     And child array-field "broker.licences" should yield "audit-approved,cpa-approved,it-approved",
     And child field "client.fullname" should yield "Jackie Kim",
-    And multi child field "client.address.city" should yield "Seoul",
     And multi child field "client.address.geopoint.lat" should yield "37.532600",
     And multi child array-field "client.address.geopoint.latLonArr" should yield "37.532600,127.024612",
+    And multi child field "client.address.city" should yield "Seoul",
+
 
 

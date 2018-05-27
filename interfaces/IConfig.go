@@ -23,7 +23,18 @@ type IConfig interface {
 	Save(name string, structType reflect.Type, configObject interface{}) (error)
 }
 
+/**
+ *	lifecycle hooks for CFactor.
+ */
+type IConfigLifeCycleHooks interface {
+	/**
+	 *	when inner fields are struct typed; this method would help to
+	 *		set back these references to the field(s)
+	 */
+	SetStructsReferences(structRefMap *map[string]interface{}) (error)
+}
 
+const MethodSetStructsReference = "SetStructsReferences"
 
 
 /**
