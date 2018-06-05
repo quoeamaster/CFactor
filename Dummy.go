@@ -1,10 +1,9 @@
-/**
- *  no logic inside this file; just added for the purpose of letting 'dep ensure' to work
- */
+// package CFactor deals with configuration loading and persisting based
+// on toml file formats.
 package CFactor
 
 import "fmt"
 
-func Testing() {
+func AddedForDepToWork() {
 	fmt.Println("added this file for 'dep ensure' to work only... no logic inside")
 }
