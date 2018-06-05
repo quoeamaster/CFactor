@@ -18,6 +18,7 @@ import (
  * 	2016-12-25T01:02:59+08:00 => HKT
  *	2016-12-25T01:02:59Z => UTC (* Z means UTC, special handling)
  */
+
 // default time format
 const TimeDefault = "2006-01-02T15:04:05Z07:00"
 // time short format
@@ -32,10 +33,7 @@ func ParseStringToTime(format string, dateInString string) (time.Time, error) {
 	// parse
 	return time.Parse(finalFormat, dateInString)
 }
-/**
- *	parse the given valueInString to the given formats.
- *	If 1 of the formats is a match; then the result will be returned immediately
- */
+
 // parse a given string-formatted datetime to time.Time based on the
 // list of patterns.
 func ParseStringToTimeWithPatterns(formats []string, valueInString string) (time.Time, string, error) {
@@ -62,6 +60,7 @@ func FormatTimeToString(format string, valueInTime time.Time) string {
  *	validation is based on if "format" is non empty; no intelligent checks
  *	on the date format in general
  */
+ 
 func validateTimeFormat(format string) string {
 	if len(format) == 0 || len(strings.TrimSpace(format))==0 {
 		return TimeDefault
