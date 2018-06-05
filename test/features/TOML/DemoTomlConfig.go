@@ -1,3 +1,19 @@
+/*
+ *  Copyright Project - CFactor, Author - quoeamaster, (C) 2018
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package TOML
 
 import (
@@ -24,11 +40,14 @@ import (
  *		In this case, the "set" method should be used if provided
  */
 
+// testing Struct for testing basic Config parsing plus 1 level of Hierarchy.
+// For multiple level of Hierarchy testing, check DemoTomlConfigMultiple.go and
+// UpdateBasicToml_test.go
 type DemoTOMLConfig struct {
 	Version string `toml:"version"`
 	Role string `toml:"role"`
 
-	Author Author `toml:"author" additional:"parent" set:"SetAuthor" get:"GetAuthor"`
+	Author Author `toml:"author" additional:"parent" set:"setAuthor" get:"GetAuthor"`
 	//FirstName string `toml:"author.firstName"`	// easiest way to implement "hierarchy"
 
 	WorkingHoursDay int  `toml:"workingHoursDay"`
@@ -47,7 +66,7 @@ type DemoTOMLConfig struct {
 	SpecialDates []time.Time `toml:"specialDates"`
 }
 
-
+// struct wrapping an Author
 type Author struct {
 	FirstName string `toml:"author.firstName"`
 	LastName string `toml:"author.lastName"`
@@ -64,6 +83,8 @@ type Author struct {
 /**
  *	override to have a meaningful description of the struct / object / instance
  */
+
+// string presentation of DemoTOMLConfig Struct
 func (d *DemoTOMLConfig) String() string {
 	s := fmt.Sprintf("Version => %v, WorkingHoursDay => %v, Role => %v, ActiveProfile => %v, LastUpdateTime => %v, ShortDate => %v, ShortDateTime => %v, Hobbies => %v(%v), TaskNumbers => %v(%v), FloatingPoints32 => %v(%v), SpecialDates => %v,(%v) # Author [struct] => %v",
 		d.Version, d.WorkingHoursDay, d.Role,
@@ -80,6 +101,8 @@ func (d *DemoTOMLConfig) String() string {
 /**
  *	override to have a meaningful description of the struct / object / instance
  */
+
+// string presentation of an Author
 func (a *Author) String() string {
 	s := fmt.Sprintf("{FirstName => %v; LastName => %v; Age => %v; Height => %v, birthday => %v, luckyNumbers => %v(%v), attributes => %v[%v], likes => %v(%v), registrationDates => %v(%v) }",
 		a.FirstName, a.LastName, a.Age,
@@ -94,7 +117,8 @@ func (a *Author) String() string {
 /**
  *	setter implementation
  */
-func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error) {
+
+func (d *DemoTOMLConfig) set(key string, params map[string]string) (bool, error) {
 	// in this case "key" could be "Author"
 	if len(key)>0 && strings.Compare(key, "Author")==0 {
 		// check if any existing Author struct available
@@ -187,8 +211,9 @@ func (d *DemoTOMLConfig) Set(key string, params map[string]string) (bool, error)
 /**
  *	setter for the "Author" member
  */
-func (d *DemoTOMLConfig) SetAuthor(p map[string]string) (bool, error) {
-	return d.Set("Author", p)
+
+func (d *DemoTOMLConfig) setAuthor(p map[string]string) (bool, error) {
+	return d.set("Author", p)
 
 	// casting (due to the design constraints, golang doesn't provide such feature on reflection casting...)
 	/*
@@ -214,6 +239,7 @@ func (d *DemoTOMLConfig) SetAuthor(p map[string]string) (bool, error) {
 /*	lifecycle hooks		*/
 /* -------------------- */
 
+// implementation of lifeCycle hook method (check IConfig.go)
 func (o *DemoTOMLConfig) SetStructsReferences(structRefMap *map[string]interface{}) (err error) {
 	structRefMapVal := *structRefMap
 	if len(structRefMapVal)==0 {

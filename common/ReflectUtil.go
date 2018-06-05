@@ -237,7 +237,7 @@ func setStructRefsToInterface(structRefMap *map[string]interface{}, object inter
 //fmt.Println(objField.Addr())
 					if objField.CanSet() {
 						// ** cannot set a Pointer object directly to the field... (struct is non pointer???)
-						objField.Set(reflect.Indirect(reflect.ValueOf(structRef)))
+						objField.set(reflect.Indirect(reflect.ValueOf(structRef)))
 						//fmt.Println("# after setField with struct ")
 					}
 				} else {

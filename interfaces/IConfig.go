@@ -60,7 +60,7 @@ const MethodSetStructsReference = "SetStructsReferences"
  */
 /*
 type ISetter interface {
-	Set(key string, params map[string]string) (bool, error)
+	set(key string, params map[string]string) (bool, error)
 }
 
 
