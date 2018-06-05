@@ -1,39 +1,39 @@
+// package defining the common interface(s)
 package interfaces
 
 import "reflect"
 
-/**
- *	declare the interface for a Config Reader / Writer
- */
+// declare the interface of a configurable object.
+// <ul>
+// <li>able to <b>Load</b> config data from the config file to a
+// targeted Struct instance</li>
+// <li>able to <b>Save</b> changes to a config file</li>
+// </ul>
 type IConfig interface {
-	/**
-	 *	able to load a configuration resource name
-	 *		(provided by the struct that implements this interface);
-	 *	return a generic object / interface (casting is possible)
-	 *
-	 *	TODO: create a generics version???
-	 */
-	Load(name string, structType reflect.Type) (reflect.Value, error)
+	// able to load a configuration file and populate the values into the
+	// targeted Struct reference.
+	// Return a generic reflect.Value (casting is possible) and
+	// the error occurred during the Load operation.
+	Load(configFilenameOrPath string, structType reflect.Type) (reflect.Value, error)
 
-	/**
-	 *	to save / persist the given configObject to the the given resource name
-	 *	(filename); type information is required so that the correct
-	 *	translation is performed
-	 */
-	Save(name string, structType reflect.Type, configObject interface{}) (error)
+	// able to persist the given object reference's values back into the
+	// targeted configuration file.
+	Save(configFilenameOrPath string, structType reflect.Type, configObject interface{}) (error)
 }
 
-/**
- *	lifecycle hooks for CFactor.
- */
+
+// declare the interface for the lifecycle hook functions.
 type IConfigLifeCycleHooks interface {
-	/**
-	 *	when inner fields are struct typed; this method would help to
-	 *		set back these references to the field(s)
-	 */
+	// for Structs that are hierarchical
+	// (containing fields pointing to another Struct).
+	// The "parent" Struct would need to handle the logic to safely set back
+	// the child Struct(s).
+	// This function acts as the lifecycle hook.
 	SetStructsReferences(structRefMap *map[string]interface{}) (error)
 }
 
+// declaring the lifecycle hook function's name on
+// "hierarchical Struct setting"
 const MethodSetStructsReference = "SetStructsReferences"
 
 
