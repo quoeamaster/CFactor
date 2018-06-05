@@ -1,3 +1,5 @@
+// package containing common functions and features for CFactor to work
+// smoothly. TypeUtil contains data type related functions
 package common
 
 import (
@@ -6,9 +8,7 @@ import (
 	"time"
 )
 
-/**
- *	helper method to split the given string to []string
- */
+// function to parse a string formatted array back into a real []string
 func CleanseArrayedString(val string) []string {
 	if len(val)>2 && len(strings.TrimSpace(val))>2 {
 		finalVal := val[1:len(val)-1]
@@ -18,14 +18,12 @@ func CleanseArrayedString(val string) []string {
 	return []string{}
 }
 
-/**
- *	handy method to convert the given []string into []int
- */
-func ConvertStringArrayToIntArray(sArray []string) ([]int, error)  {
-	if sArray != nil && len(sArray)>0 {
-		iArray := make([]int, len(sArray))
+// function to parse a []string to []int
+func ConvertStringArrayToIntArray(stringArray []string) ([]int, error)  {
+	if stringArray != nil && len(stringArray)>0 {
+		iArray := make([]int, len(stringArray))
 
-		for i, v := range sArray {
+		for i, v := range stringArray {
 			iVal, err := strconv.Atoi( strings.TrimSpace(v) )
 			if err != nil {
 				return nil, err
@@ -34,18 +32,16 @@ func ConvertStringArrayToIntArray(sArray []string) ([]int, error)  {
 		}
 		return iArray, nil
 	}
-	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []int\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []int\n", stringArray))
 	return nil, nil
 }
 
-/**
- *	handy method to convert the given []string into []float32
- */
-func ConvertStringArrayToFloat32Array(sArray []string) ([]float32, error)  {
-	if sArray != nil && len(sArray)>0 {
-		iArray := make([]float32, len(sArray))
+// function to parse a []string to []float32
+func ConvertStringArrayToFloat32Array(stringArray []string) ([]float32, error)  {
+	if stringArray != nil && len(stringArray)>0 {
+		iArray := make([]float32, len(stringArray))
 
-		for i, v := range sArray {
+		for i, v := range stringArray {
 			iVal, err := strconv.ParseFloat( strings.TrimSpace(v), 32 )
 			if err != nil {
 				return nil, err
@@ -54,17 +50,16 @@ func ConvertStringArrayToFloat32Array(sArray []string) ([]float32, error)  {
 		}
 		return iArray, nil
 	}
-	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float32\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float32\n", stringArray))
 	return nil, nil
 }
-/**
- *	handy method to convert the given []string into []float32
- */
-func ConvertStringArrayToFloat64Array(sArray []string) ([]float64, error)  {
-	if sArray != nil && len(sArray)>0 {
-		iArray := make([]float64, len(sArray))
 
-		for i, v := range sArray {
+// function to parse a []string to []float64
+func ConvertStringArrayToFloat64Array(stringArray []string) ([]float64, error)  {
+	if stringArray != nil && len(stringArray)>0 {
+		iArray := make([]float64, len(stringArray))
+
+		for i, v := range stringArray {
 			iVal, err := strconv.ParseFloat( strings.TrimSpace(v), 64 )
 			if err != nil {
 				return nil, err
@@ -73,18 +68,16 @@ func ConvertStringArrayToFloat64Array(sArray []string) ([]float64, error)  {
 		}
 		return iArray, nil
 	}
-	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float64\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []float64\n", stringArray))
 	return nil, nil
 }
 
-/**
- *	handy method to convert the given []string into []bool
- */
-func ConvertStringArrayToBoolArray(sArray []string) ([]bool, error)  {
-	if sArray != nil && len(sArray)>0 {
-		iArray := make([]bool, len(sArray))
+// function to parse a []string to []bool
+func ConvertStringArrayToBoolArray(stringArray []string) ([]bool, error)  {
+	if stringArray != nil && len(stringArray)>0 {
+		iArray := make([]bool, len(stringArray))
 
-		for i, v := range sArray {
+		for i, v := range stringArray {
 			iVal, err := strconv.ParseBool( strings.TrimSpace(v) )
 			if err != nil {
 				return nil, err
@@ -93,18 +86,16 @@ func ConvertStringArrayToBoolArray(sArray []string) ([]bool, error)  {
 		}
 		return iArray, nil
 	}
-	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []bool\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []bool\n", stringArray))
 	return nil, nil
 }
 
-/**
- *	handy method to convert the given []string into []time.Time
- */
-func ConvertStringArrayToTimeArray(sArray []string) ([]time.Time, error)  {
-	if sArray != nil && len(sArray)>0 {
-		iArray := make([]time.Time, len(sArray))
+// function to parse a []string to []time.Time
+func ConvertStringArrayToTimeArray(stringArray []string) ([]time.Time, error)  {
+	if stringArray != nil && len(stringArray)>0 {
+		iArray := make([]time.Time, len(stringArray))
 
-		for i, v := range sArray {
+		for i, v := range stringArray {
 			iVal, _, err := ParseStringToTimeWithPatterns(
 				[]string{TimeDefault, TimeShortDateTime, TimeShortDate},
 				strings.TrimSpace(v))
@@ -116,20 +107,18 @@ func ConvertStringArrayToTimeArray(sArray []string) ([]time.Time, error)  {
 		}
 		return iArray, nil
 	}
-	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []time.Time\n", sArray))
+	//return nil, errors.New(fmt.Sprintf("Failed to convert %v to []time.Time\n", stringArray))
 	return nil, nil
 }
 
-/**
- *	trim the given []string
- */
-func TrimStringArrayMembers(sArray []string) []string {
-	if sArray != nil && len(sArray)>0 {
-		for i, v := range sArray {
-			sArray[i] = strings.TrimSpace(v)
+// trim the contents of the []string
+func TrimStringArrayMembers(stringArray []string) []string {
+	if stringArray != nil && len(stringArray)>0 {
+		for i, v := range stringArray {
+			stringArray[i] = strings.TrimSpace(v)
 		}
 	}
-	return sArray
+	return stringArray
 }
 
 
@@ -137,6 +126,7 @@ func TrimStringArrayMembers(sArray []string) []string {
 /*	check empty / nil based on type		*/
 /* ------------------------------------ */
 
+// function to check if the given string is empty or nil
 func IsStringEmptyOrNil(value string) bool {
 	if len(strings.TrimSpace(value))==0 {
 		return true

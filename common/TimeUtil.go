@@ -1,3 +1,5 @@
+// package containing common functions and features for CFactor to work
+// smoothly. Timeutil contains time.Time related functions
 package common
 
 import (
@@ -16,23 +18,26 @@ import (
  * 	2016-12-25T01:02:59+08:00 => HKT
  *	2016-12-25T01:02:59Z => UTC (* Z means UTC, special handling)
  */
+// default time format
 const TimeDefault = "2006-01-02T15:04:05Z07:00"
+// time short format
 const TimeShortDate = "2006-01-02"
+// time short + date format
 const TimeShortDateTime = "2006-01-02T15:04:05"
 
-/**
- *	parse the given valueInString to the given format.
- *	if format is non valid (empty string); the default ISO 8601 format is used
- */
-func ParseStringToTime(format string, valueInString string) (time.Time, error) {
+// parse a given string-formatted datetime to time.Time.
+// If format is non valid (empty string); the default time format (TimeDefault) is used
+func ParseStringToTime(format string, dateInString string) (time.Time, error) {
 	finalFormat := validateTimeFormat(format)
 	// parse
-	return time.Parse(finalFormat, valueInString)
+	return time.Parse(finalFormat, dateInString)
 }
 /**
  *	parse the given valueInString to the given formats.
  *	If 1 of the formats is a match; then the result will be returned immediately
  */
+// parse a given string-formatted datetime to time.Time based on the
+// list of patterns.
 func ParseStringToTimeWithPatterns(formats []string, valueInString string) (time.Time, string, error) {
 	for _, format := range formats {
 		t, err := time.Parse(format, valueInString)
@@ -43,10 +48,8 @@ func ParseStringToTimeWithPatterns(formats []string, valueInString string) (time
 	return  time.Now(), "", errors.New(fmt.Sprintf("non matchable {%v} on the given patterns {%v}", valueInString, formats))
 }
 
-/**
- *	format the given time.Time to a string formatted value based on the given
- *	"format"
- */
+// function to parse the given time.Time reference to string according
+// to the given format.
 func FormatTimeToString(format string, valueInTime time.Time) string {
 	finalFormat := validateTimeFormat(format)
 	// format
