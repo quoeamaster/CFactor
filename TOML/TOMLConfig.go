@@ -1,6 +1,6 @@
-/**
- *	implement the IConfig.go interface method(s); TOML version
- */
+
+// package TOML includes an implementation of IConfig interface for toml
+// config files.
 package TOML
 
 import (
@@ -15,11 +15,18 @@ import (
 	"bytes"
 )
 
+// struct wrapping the meta data for configuration loading / persisting
 type TOMLConfigImpl struct {
+    // filename or filepath of the config file
 	Name string
+
+	// the Struct's type in which the contents of the config file would be
+	// translated into. Simply the corresponding fields of the
+	// supplied Struct would be populated accordingly.
 	StructType reflect.Type
 }
 
+// create a new TOMLConfigImpl instance.
 func NewTOMLConfigImpl(name string, structType reflect.Type) TOMLConfigImpl {
 	impl := TOMLConfigImpl{
 		Name: name,
@@ -29,11 +36,11 @@ func NewTOMLConfigImpl(name string, structType reflect.Type) TOMLConfigImpl {
 }
 
 
-/**
- *	load the given toml file / resource
- *
- *	return => pointer to the populated instance (created from the Type)
- */
+// load the toml config file based on TOMLConfigImpl.Name property.
+// A reference of the targeted Struct Type is given; this reference's fields
+// would be populated accordingly based on the targeted Struct's Tag setup.
+// Returns the same reference plus any Error occurred during the
+// loading operation.
 func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err error) {
 	// defer
 	defer func() {
@@ -69,12 +76,9 @@ func (t *TOMLConfigImpl) Load(ptrConfigObject interface{}) (ptr interface{}, err
 	return reflect.Zero(t.StructType), err
 }
 
-/**
- *	to save / persist the given configObject to the the given resource name
- *	(filename); type information is required so that the correct
- *	translation is performed
- */
-func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject interface{}) (err error) {
+// persist the provided Struct reference's fields value back to the
+// config file. Return the error occurred during the operation.
+func (t *TOMLConfigImpl) Save(configFilenameOrPath string, structType reflect.Type, configObject interface{}) (err error) {
 	err = nil
 	// create a Map[string]object structure for the available config tags
 	configMap := make(map[string]interface{})
@@ -90,7 +94,7 @@ func (t *TOMLConfigImpl) Save(name string, structType reflect.Type, configObject
 	}	// end -- for (numFields loop)
 
 	if len(configMap) > 0 {
-		cfgFile := common.CreateFile(name)
+		cfgFile := common.CreateFile(configFilenameOrPath)
 		cfgWriter := bufio.NewWriter(cfgFile)
 		// sort of finally clause
 		defer func() {
@@ -281,27 +285,34 @@ func translateNonPrimitiveValueToString(value interface{}) (string, bool, error)
 /*	GETTERs based on key and dataType	*/
 /* ------------------------------------ */
 
-
+// deprecated method => get the string value based on a given key and
+// then extract the value corresponding to the key at runtime.
 func (t *TOMLConfigImpl) GetStringValueByKey(object interface{}, fieldName string) (bool, string) {
 	return common.GetStringValueByTomlField(object, t.StructType, fieldName)
 }
+// deprecated method => get the int value based on a given key and
+// then extract the value corresponding to the key at runtime.
 func (t *TOMLConfigImpl) GetIntValueByKey(object interface{}, fieldName string) (bool, int64) {
 	return common.GetIntValueByTomlField(object, t.StructType, fieldName)
 }
+// deprecated method => get the float value based on a given key and
+// then extract the value corresponding to the key at runtime.
 func (t *TOMLConfigImpl) GetFloatValueByKey(object interface{}, fieldName string) (bool, float64) {
 	return common.GetFloatValueByTomlField(object, t.StructType, fieldName)
 }
+// deprecated method => get the bool value based on a given key and
+// then extract the value corresponding to the key at runtime.
 func (t *TOMLConfigImpl) GetBoolValueByKey(object interface{}, fieldName string) (bool, bool) {
 	return common.GetBoolValueByTomlField(object, t.StructType, fieldName)
 }
+// deprecated method => get the time.Time value based on a given key and
+// then extract the value corresponding to the key at runtime.
 func (t *TOMLConfigImpl) GetTimeValueByKey(object interface{}, fieldName string) (bool, time.Time) {
 	return common.GetTimeValueByTomlField(object, t.StructType, fieldName)
 }
 
 
-/**
- *	check if the given field:value pair matches the given object instance (string)
- */
+// check if the field's value of the reference object equals to the given "value" (string)
 func (t *TOMLConfigImpl) IsFieldStringValueMatched(object interface{}, fieldName, value string) bool {
 	ok, sVal := common.GetStringValueByTomlField(object, t.StructType, fieldName)
 
