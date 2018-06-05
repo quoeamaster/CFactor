@@ -1,4 +1,4 @@
-# CFactor
+# CFactor [![GoDoc](https://godoc.org/github.com/quoeamaster/CFactor?status.svg)](https://godoc.org/github.com/quoeamaster/CFactor)
 core configuration module for any system (supports TOML, JSON to be supported soon).
 The goal for this project is to provide a library supporting configuration access
 (read and write) base on TOML syntax (JSON would be supported soon.
