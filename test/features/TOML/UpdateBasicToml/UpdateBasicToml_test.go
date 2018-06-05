@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 
+// testing on persisting toml values (multiple struct hierarchies)
 package UpdateBasicToml
 
 import (
