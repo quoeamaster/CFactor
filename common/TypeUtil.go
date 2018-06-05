@@ -1,4 +1,4 @@
-// TypeUtil contains data type related functions
+// TypeUtil contains data type related functions.
 package common
 
 import (

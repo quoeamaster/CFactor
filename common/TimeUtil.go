@@ -1,4 +1,4 @@
-// Timeutil contains time.Time related functions
+// Timeutil contains time.Time related functions.
 package common
 
 import (

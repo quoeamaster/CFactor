@@ -1,4 +1,4 @@
-// ReflectionUtil contains reflection related functions
+// ReflectionUtil contains reflection related functions.
 package common
 
 import (

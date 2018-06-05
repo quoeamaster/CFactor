@@ -1,5 +1,5 @@
-// package containing common functions and features for CFactor to work
-// smoothly. FileUtil contains file I/O functions
+// package containing common functions and features for CFactor to work smoothly.
+// FileUtil contains file I/O functions.
 package common
 
 import (
