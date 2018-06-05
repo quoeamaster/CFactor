@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-// package CFactor deals with configuration loading and persisting based
+// CFactor deals with configuration loading and persisting based
 // on toml file formats.
 package CFactor
 
