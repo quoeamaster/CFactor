@@ -1,3 +1,19 @@
+/*
+ *  Copyright Project - CFactor, Author - quoeamaster, (C) 2018
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package Demo
 
 /* ============================================================================ */
@@ -5,17 +21,20 @@ package Demo
 /* ============================================================================ */
 
 /* simply a shopping session per customer level */
+
 type Session struct {
 	UserId string
 	Cart *ShoppingCart
 }
 
 /* a real shopping cart containing what a customer interested to buy */
+
 type ShoppingCart struct {
 	Items map[string]Item
 }
 
 /* item (name + price) */
+
 type Item struct {
 	// a more practical field should be item_id instead of Name
 	Name string
@@ -24,6 +43,7 @@ type Item struct {
 }
 
 // ctor
+
 func NewItem(name string, quantity int, price float32) *Item {
 	return &Item{
 		Name: name,
@@ -67,6 +87,7 @@ func (cart *ShoppingCart) CalculateTrxAmount() float32 {
 /* ========================================================================= */
 
 /* inherited the values of Item PLUS an inventoryCount */
+
 type InventoryItem struct {
 	item *Item
 	inventoryCount int
@@ -78,6 +99,7 @@ type Inventory struct {
 }
 
 // ctor
+
 func NewInventory() *Inventory {
 	return &Inventory{
 		items: make(map[string]InventoryItem),

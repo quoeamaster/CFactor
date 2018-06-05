@@ -1,3 +1,20 @@
+/*
+ *  Copyright Project - CFactor, Author - quoeamaster, (C) 2018
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+// testing Struct for having hierarchical Structures.
 package TOML
 
 import (
@@ -12,6 +29,8 @@ import (
 /*
  *	a struct to encapsulate a "transaction"
  */
+
+// Struct wrapping up a "transaction"
 type TransactionRecord struct {
 	// struct to describe the "client" involved
 	Client Client `toml:"client" additional:"parent"`
@@ -25,6 +44,8 @@ type TransactionRecord struct {
 /*
  *	a struct to describe a "broker"
  */
+
+// Struct wrapping up a "Broker"
 type Broker struct {
 	FullName string `toml:"broker.fullname"`
 	Id string `toml:"broker.id"`
@@ -36,6 +57,8 @@ type Broker struct {
 /*
  *	a struct to describe a "client / user"
  */
+
+// Struct wrapping up a "client"
 type Client struct {
 	FullName string `toml:"client.fullname"`
 	Id string `toml:"client.id"`
@@ -49,6 +72,8 @@ type Client struct {
 /*
  *	a struct to describe an "address" for the client
  */
+
+// Struct wrapping up a client's "address"
 type ClientAddress struct {
 	StreetNum int `toml:"client.address.streetnum"`
 	StreetName string `toml:"client.address.streetname"`
@@ -62,6 +87,8 @@ type ClientAddress struct {
 /*
  *	a struct to describe a "geopoint" for the client address
  */
+
+// Struct wrapping up a "geo-point" for a location on the address
 type GeoPoint struct {
 	Lat float64 `toml:"client.address.geopoint.Lat"`
 	Lon float64 `toml:"client.address.geopoint.Lon"`
@@ -74,6 +101,7 @@ type GeoPoint struct {
 /*	String() declaration	*/
 /* ------------------------ */
 
+// return a string representation of a TransactionRecord
 func (o *TransactionRecord) String() string {
 	var bBuffer bytes.Buffer
 
@@ -87,7 +115,7 @@ func (o *TransactionRecord) String() string {
 
 	return bBuffer.String()
 }
-
+// return a string representation of a Client
 func (o *Client) String() string {
 	var bBuffer bytes.Buffer
 
@@ -101,7 +129,7 @@ func (o *Client) String() string {
 
 	return bBuffer.String()
 }
-
+// return a string representation of a Broker
 func (o *Broker) String() string {
 	var bBuffer bytes.Buffer
 
@@ -117,7 +145,7 @@ func (o *Broker) String() string {
 
 	return bBuffer.String()
 }
-
+// return a string representation of a ClientAddress
 func (o *ClientAddress) String() string {
 	var bBuffer bytes.Buffer
 
@@ -135,7 +163,7 @@ func (o *ClientAddress) String() string {
 
 	return bBuffer.String()
 }
-
+// return a string representation of a GeoPoint
 func (o *GeoPoint) String() string {
 	var bBuffer bytes.Buffer
 
@@ -155,6 +183,7 @@ func (o *GeoPoint) String() string {
 /*	lifecycle hooks     */
 /* -------------------- */
 
+// the lifeCycle Hook method implementation (check IConfig.go)
 func (o *TransactionRecord) SetStructsReferences(structRefMap *map[string]interface{}) (err error) {
 	structRefMapVal := *structRefMap
 	if len(structRefMapVal)==0 {
