@@ -1,5 +1,4 @@
-// package containing common functions and features for CFactor to work
-// smoothly. Timeutil contains time.Time related functions
+// Timeutil contains time.Time related functions
 package common
 
 import (
@@ -60,7 +59,7 @@ func FormatTimeToString(format string, valueInTime time.Time) string {
  *	validation is based on if "format" is non empty; no intelligent checks
  *	on the date format in general
  */
- 
+
 func validateTimeFormat(format string) string {
 	if len(format) == 0 || len(strings.TrimSpace(format))==0 {
 		return TimeDefault

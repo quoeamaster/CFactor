@@ -4,11 +4,9 @@ package interfaces
 import "reflect"
 
 // declare the interface of a configurable object.
-// <ul>
-// <li>able to <b>Load</b> config data from the config file to a
-// targeted Struct instance</li>
-// <li>able to <b>Save</b> changes to a config file</li>
-// </ul>
+// able to Load config data from the config file to a
+// targeted Struct instance;
+// able to Save changes to a config file
 type IConfig interface {
 	// able to load a configuration file and populate the values into the
 	// targeted Struct reference.

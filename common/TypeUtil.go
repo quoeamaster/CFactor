@@ -1,5 +1,4 @@
-// package containing common functions and features for CFactor to work
-// smoothly. TypeUtil contains data type related functions
+// TypeUtil contains data type related functions
 package common
 
 import (

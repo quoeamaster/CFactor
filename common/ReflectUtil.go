@@ -1,3 +1,4 @@
+// ReflectionUtil contains reflection related functions
 package common
 
 import (
@@ -10,44 +11,72 @@ import (
 	"CFactor/interfaces"
 )
 
+// the config file is "toml"
 const ConfigTypeTOML = "CFG_T"
+// the config file is "json" (to be supported)
 const ConfigTypeJSON = "CFG_J"
+// this value indicates that the field of a Struct reference is pointing
+// to another Struct reference (hierarchical)
 const ConfigTypeParent = "parent"
 
+// the Tag's value indicating the corresponding toml config's key
+// (e.g. toml:"first_name")
 const TagTOML = "toml"
-const TagJSON = "json"
+//const TagJSON = "json"
+
+// the Tag's key indicating additional information for this Struct's field
 const TagAdditional = "additional"
+// deprecated => set method; use the lifeCycle hook functions such as
+// "SetStructsReferences" instead (check IConfig.go)
 const TagSet = "set"
 //const TagGet = "get"
 
+// data type int
 const TypeInt = "int"
+// data type string
 const TypeString = "string"
+// data type float32
 const TypeFloat32 = "float32"
+// data type float64
 const TypeFloat64 = "float64"
+// data type bool
 const TypeBool = "bool"
+// data type time.Time
 const TypeTime = "time.Time"
 
+// data type for array string
 const TypeArrayString = "[]string"
+// data type for array int
 const TypeArrayInt = "[]int"
+// data type for array float32
 const TypeArrayFloat32 = "[]float32"
+// data type for array float64
 const TypeArrayFloat64 = "[]float64"
+// data type for array bool
 const TypeArrayBool = "[]bool"
+// data type for array time.Time
 const TypeArrayTime = "[]time.Time"
 
+// data type for map (for prefix pattern matching)
 const TypePartialMap = "map["
+// data type for map[string]interface {}
 const TypeMapStringInterface = "map[string]interface {}"
 
+// string presentation for a "pointer"
 const TypePointerSymbol = "*"
 
+// wraps a struct field's "Tag"
 type TagStructure struct {
+    // config type (toml or json)
 	CType string
+	// name of the struct's field
 	Field string
+	// additional information of the struct's field (e.g. is it a "parent")
 	Additional string
 }
 
-/**
- *	create a pointer instance of the given "Type"
- */
+// create a new instance based on the given "type".
+// The return value is a pointer referencing the new instance.
 func NewStructPointerByType(t reflect.Type) reflect.Value {
 	if t != nil {
 		return reflect.New(t)
@@ -55,6 +84,9 @@ func NewStructPointerByType(t reflect.Type) reflect.Value {
 	return reflect.Zero(t)
 }
 
+// return a Struct reference based on the "type". If not found within the
+// given map; a new instance of the targeted "type" would be
+// created and returned.
 func getStructRefByType(structRefMap map[string]interface{}, structType reflect.Type) interface{} {
 	structTypeString := structType.String()
 	structRef := structRefMap[structTypeString]
@@ -69,11 +101,15 @@ func getStructRefByType(structRefMap map[string]interface{}, structType reflect.
 /**
  *	helper method to check if the given string is related to an "array" syntax
  */
+
 func isValueAnArray(value string) bool {
 	// TODO: might better use regexp...
 	return strings.Index(value, "[")==0 && strings.LastIndex(value, "]")==(len(value)-1)
 }
 
+// function to populate the targeted Struct reference field(s) based on the
+// configuration lines read.
+// PS. the lifeCycle hook function "SetStructsReferences" would be invoked here.
 func PopulateFieldValues(lines []string, configType string, object interface{}, objectType reflect.Type) (bool, error) {
 	if IsValidPointer(object) == true {
 		// a map for storing the inner objects / structs
@@ -152,6 +188,7 @@ func setStructRefsToInterfaceByLifeCycleHooks(structRefMap *map[string]interface
 	return nil
 }
 
+/*
 func setStructRefsToInterface(structRefMap *map[string]interface{}, object interface{}) (error) {
 	structRefMapVal := *structRefMap
 
@@ -201,10 +238,11 @@ func setStructRefsToInterface(structRefMap *map[string]interface{}, object inter
 
 	return nil
 }
+*/
 
 /**
  *	helper method to check if the given names matched (usually either 1 of the names contain a "*"
- */
+ *
 func isStructNameMatched(actualRefName, targetRefName string) (string, bool) {
 	// 4 conditions => a) actual contains * only, b) target contains * only and c) both contains *, both match and no "*"
 	actualRefIsPtr := strings.Index(actualRefName, TypePointerSymbol) == 0
@@ -253,11 +291,12 @@ func isStructNameMatched(actualRefName, targetRefName string) (string, bool) {
 	}
 	return fmt.Sprintf("non supported case both; %v vs %v", actualRefName, targetRefName), false
 }
-
+*/
 
 /*
  *	population of a string field by fieldName
  */
+
 func populateStringValByFieldName(
 	object interface{}, objectType reflect.Type, key string, value string,
 	isArray bool, structRefMap *map[string]interface{}) {
@@ -317,6 +356,8 @@ func populateStringValByFieldName(
 		}	// end -- if (additional_info == parent)
 	}	// end -- for (fLen)
 }
+
+/*
 func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, k, v string) (map[string]string) {
 	// strip the " symbol if any
 	v = strings.Replace(v, "\"", "", -1)
@@ -324,7 +365,8 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
 	p[k] = v
 
 	return p
-	/*
+
+	// old approch
 	fLen := structObjType.NumField()
 
 	structObj := NewStructPointerByType(structObjType) //.Elem()
@@ -341,12 +383,13 @@ func populateStringValueByFieldNameUnderChildStruct(structObjType reflect.Type, 
 		}	// end -- if (tagStruct.Field == k)
 	}	// end -- for (fLen)
 	return structObj
-	*/
 }
+*/
 
 /**
  *	handy method to handle set-value operation based on dataType (sharable by TOML and JSON config)
  */
+
 func setValueByDataType(dataType string, targetField reflect.Value, k, v string, isArray bool) {
 	var sArray []string
 
@@ -442,7 +485,8 @@ func setValueByDataType(dataType string, targetField reflect.Value, k, v string,
 /*	get value for TOML based on dataType	*/
 /* ---------------------------------------- */
 
-func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, string) {
+// return the string value of the Struct reference's field (identified by "key")
+func GetStringValueByTomlField(object interface{}, objectType reflect.Type, key string) (bool, string) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object)
 
@@ -451,17 +495,17 @@ func GetStringValueByTomlField(object interface{}, objectType reflect.Type, k st
 
 		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent)==0 {
 			// met a "parent" level field
-			ok, sVal := GetStringValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			ok, sVal := getStringValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), key)
 			if ok {
 				return ok, sVal
 			}
-		} else if strings.Compare(tags.Get(TagTOML), k) == 0 {
+		} else if strings.Compare(tags.Get(TagTOML), key) == 0 {
 			return true, objVal.Field(i).String() //return true, fmt.Sprint(objVal.Field(i).Interface())
-		}	// end -- if (k matched)
+		}	// end -- if (key matched)
 	}	// end -- for (fLen)
 	return false, ""
 }
-func GetStringValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, string) {
+func getStringValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, string) {
 	fieldType := field.Type()
 	fLen := fieldType.NumField()
 
@@ -477,7 +521,8 @@ func GetStringValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (b
 	return false, "not found"
 }
 
-func GetIntValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, int64) {
+// return the int value of the Struct reference's field (identified by "key")
+func GetIntValueByTomlField(object interface{}, objectType reflect.Type, key string) (bool, int64) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object)
 
@@ -486,18 +531,18 @@ func GetIntValueByTomlField(object interface{}, objectType reflect.Type, k strin
 
 		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent)==0 {
 			// met a "parent" level field
-			//fmt.Println(tags, "v", k, "b", reflect.ValueOf(object).Field(i))
-			ok, iVal := GetIntValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			//fmt.Println(tags, "v", key, "b", reflect.ValueOf(object).Field(i))
+			ok, iVal := getIntValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), key)
 			if ok {
 				return ok, iVal
 			}	// end -- if (ok)
-		} else if strings.Compare(tags.Get(TagTOML), k) == 0 {
+		} else if strings.Compare(tags.Get(TagTOML), key) == 0 {
 			return true, reflect.ValueOf(objVal.Field(i).Int()).Interface().(int64)
-		}	// end -- if (k matched)
+		}	// end -- if (key matched)
 	}	// end -- for (fLen)
 	return false, -1
 }
-func GetIntValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, int64) {
+func getIntValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, int64) {
 	fieldType := field.Type()
 	fLen := fieldType.NumField()
 
@@ -513,7 +558,8 @@ func GetIntValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool
 	return false, -1
 }
 
-func GetFloatValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, float64) {
+// return the float value of the Struct reference's field (identified by "key")
+func GetFloatValueByTomlField(object interface{}, objectType reflect.Type, key string) (bool, float64) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object)
 
@@ -522,17 +568,17 @@ func GetFloatValueByTomlField(object interface{}, objectType reflect.Type, k str
 
 		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent)==0 {
 			// met a "parent" level field
-			ok, iVal := GetFloatValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			ok, iVal := getFloatValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), key)
 			if ok {
 				return ok, iVal
 			}	// end -- if (ok)
-		} else if strings.Compare(tags.Get(TagTOML), k) == 0 {
+		} else if strings.Compare(tags.Get(TagTOML), key) == 0 {
 			return true, reflect.ValueOf(objVal.Field(i).Float()).Interface().(float64)
-		}	// end -- if (k matched)
+		}	// end -- if (key matched)
 	}	// end -- for (fLen)
 	return false, -1
 }
-func GetFloatValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, float64) {
+func getFloatValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, float64) {
 	fieldType := field.Type()
 	fLen := fieldType.NumField()
 
@@ -548,7 +594,8 @@ func GetFloatValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bo
 	return false, -1
 }
 
-func GetBoolValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, bool) {
+// return the bool value of the Struct reference's field (identified by "key")
+func GetBoolValueByTomlField(object interface{}, objectType reflect.Type, key string) (bool, bool) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object)
 
@@ -557,17 +604,17 @@ func GetBoolValueByTomlField(object interface{}, objectType reflect.Type, k stri
 
 		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent)==0 {
 			// met a "parent" level field
-			ok, bVal := GetBoolValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			ok, bVal := getBoolValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), key)
 			if ok {
 				return ok, bVal
 			}	// end -- if (ok)
-		} else if strings.Compare(tags.Get(TagTOML), k) == 0 {
+		} else if strings.Compare(tags.Get(TagTOML), key) == 0 {
 			return true, reflect.ValueOf(objVal.Field(i).Bool()).Interface().(bool)
-		}	// end -- if (k matched)
+		}	// end -- if (key matched)
 	}	// end -- for (fLen)
 	return false, false
 }
-func GetBoolValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, bool) {
+func getBoolValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, bool) {
 	fieldType := field.Type()
 	fLen := fieldType.NumField()
 
@@ -583,7 +630,8 @@ func GetBoolValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (boo
 	return false, false
 }
 
-func GetTimeValueByTomlField(object interface{}, objectType reflect.Type, k string) (bool, time.Time) {
+// return the time.Time value of the Struct reference's field (identified by "key")
+func GetTimeValueByTomlField(object interface{}, objectType reflect.Type, key string) (bool, time.Time) {
 	fLen := objectType.NumField()
 	objVal := reflect.ValueOf(object)
 
@@ -592,18 +640,18 @@ func GetTimeValueByTomlField(object interface{}, objectType reflect.Type, k stri
 
 		if strings.Compare(tags.Get(TagAdditional), ConfigTypeParent)==0 {
 			// met a "parent" level field
-			ok, tVal := GetTimeValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), k)
+			ok, tVal := getTimeValueByTomlFieldUnderChildStruct(reflect.ValueOf(object).Field(i), key)
 			if ok {
 				return ok, tVal
 			}	// end -- if (ok)
-		} else if strings.Compare(tags.Get(TagTOML), k) == 0 {
+		} else if strings.Compare(tags.Get(TagTOML), key) == 0 {
 			tVal := objVal.Field(i).Interface().(time.Time)
 			return true, tVal
-		}	// end -- if (k matched)
+		}	// end -- if (key matched)
 	}	// end -- for (fLen)
 	return false, time.Now()
 }
-func GetTimeValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, time.Time) {
+func getTimeValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (bool, time.Time) {
 	fieldType := field.Type()
 	fLen := fieldType.NumField()
 
@@ -623,6 +671,8 @@ func GetTimeValueByTomlFieldUnderChildStruct(field reflect.Value, k string) (boo
 /**
  *	generic method to get back values based on the object and fieldName
  */
+
+// generic method to get back values based on the object and fieldName
 func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, fieldName string) interface{} {
 	numFields := objectType.NumField()
 	objectVal := reflect.ValueOf(object)
@@ -677,7 +727,7 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 			}
 
 			// non primitive type met, probably "struct"
-			return GetValueByTomlFieldNStructType(indirectVal.Interface(), indirectType)
+			return getValueByTomlFieldNStructType(indirectVal.Interface(), indirectType)
 
 			break
 		}
@@ -686,7 +736,7 @@ func GetValueByTomlFieldNType(object interface{}, objectType reflect.Type, field
 	return nil
 }
 
-func GetValueByTomlFieldNStructType(object interface{}, objectType reflect.Type) (map[string]interface{}) {
+func getValueByTomlFieldNStructType(object interface{}, objectType reflect.Type) (map[string]interface{}) {
 	// map with all the non-null values
 	valueMap := make(map[string]interface{})
 	numFields := objectType.NumField()
@@ -706,7 +756,9 @@ func GetValueByTomlFieldNStructType(object interface{}, objectType reflect.Type)
 /*	access field value through reflection 	*/
 /* ---------------------------------------- */
 
-func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructField) bool {
+// function to check if the struct object's field at index "idx"
+// is empty or nil
+func IsFieldValueEmptyOrNil(object interface{}, idx int) bool {
 	valObj := reflect.ValueOf(object)
 	fieldTypeString := valObj.Field(idx).Type().String()
 	bMatched := false
@@ -815,11 +867,13 @@ func IsFieldValueEmptyOrNil(object interface{}, idx int, field reflect.StructFie
 /**
  *	check if the given "value" is valid or not (sort of nil check)
  */
+/*
 func IsValueValid(object reflect.Value) bool {
 	return !strings.Contains(object.String(), "invalid")
 }
+*/
 
-
+// function to check if the given "object" is a valid pointer
 func IsValidPointer(object interface{}) bool {
 	return object != nil
 }

@@ -86,7 +86,7 @@ func (t *TOMLConfigImpl) Save(configFilenameOrPath string, structType reflect.Ty
 
 	for idx := 0; idx < numFields; idx++ {
 		fieldMeta := structType.Field(idx)
-		ok := common.IsFieldValueEmptyOrNil(configObject, idx, fieldMeta)
+		ok := common.IsFieldValueEmptyOrNil(configObject, idx) // , fieldMeta
 		if ok==false {
 			tagValue := fieldMeta.Tag.Get(common.TagTOML)
 			configMap[tagValue] = common.GetValueByTomlFieldNType(configObject, structType, fieldMeta.Name)
