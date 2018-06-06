@@ -21,7 +21,7 @@ import (
 	"time"
 	"bytes"
 	"fmt"
-	"CFactor/common"
+	"github.com/quoeamaster/CFactor/common"
 	"strconv"
 	"reflect"
 )

@@ -19,15 +19,19 @@ package UpdateBasicToml
 
 import (
 	"github.com/DATA-DOG/godog"
-	"CFactor/TOML"
+    "strings"
+    "strconv"
+    time2 "time"
 	"reflect"
 	"fmt"
-	TOML2 "CFactor/test/features/TOML"
-	"strings"
-	"CFactor/common"
-	"strconv"
-	time2 "time"
+    "github.com/quoeamaster/CFactor/common"
+    "github.com/quoeamaster/CFactor/TOML"
+    TOML2 "github.com/quoeamaster/CFactor/test/features/TOML"
 )
+
+//"CFactor/TOML"
+//TOML2 "CFactor/test/features/TOML"
+//
 
 var configReader TOML.TOMLConfigImpl
 var configObject TOML2.DemoTOMLConfig
@@ -594,7 +598,7 @@ func reloadTomlToMultiStruct(filename string) error {
 	}
 	// wait for 2 seconds so that the persist operation is fully done
 	// (file I/O is always the slowest operation in OS level)
-	time2.Sleep(100 * time2.Millisecond)
+	time2.Sleep(time2.Second)
 
 	return nil
 }

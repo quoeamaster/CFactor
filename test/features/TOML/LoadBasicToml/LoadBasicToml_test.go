@@ -19,14 +19,19 @@ package LoadBasicToml
 import (
 	"github.com/DATA-DOG/godog"
 	"fmt"
-	"CFactor/TOML"
+    "time"
 	"reflect"
 	"strconv"
 	"strings"
-	"CFactor/common"
-	"time"
-	TOML2 "CFactor/test/features/TOML"
+
+    "github.com/quoeamaster/CFactor/TOML"
+    "github.com/quoeamaster/CFactor/common"
+    TOML2 "github.com/quoeamaster/CFactor/test/features/TOML"
 )
+
+// "CFactor/TOML"
+//	"CFactor/common"
+//    TOML2 "CFactor/test/features/TOML"
 
 // class level variable
 var configReader TOML.TOMLConfigImpl

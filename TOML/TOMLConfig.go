@@ -20,7 +20,6 @@ package TOML
 
 import (
 	"reflect"
-	"CFactor/common"
 	"strings"
 	"runtime"
 	"time"
@@ -28,7 +27,10 @@ import (
 	"fmt"
 	"errors"
 	"bytes"
+	"github.com/quoeamaster/CFactor/common"
 )
+
+// "CFactor/common"
 
 // struct wrapping the meta data for configuration loading / persisting
 type TOMLConfigImpl struct {

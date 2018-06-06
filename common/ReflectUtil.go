@@ -24,8 +24,10 @@ import (
 	"strconv"
 	"fmt"
 	"time"
-	"CFactor/interfaces"
+	"github.com/quoeamaster/CFactor/interfaces"
 )
+
+// 	"CFactor/interfaces"
 
 // the config file is "toml"
 const ConfigTypeTOML = "CFG_T"

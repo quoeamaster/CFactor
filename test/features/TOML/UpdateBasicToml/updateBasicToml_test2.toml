@@ -1,9 +1,9 @@
-author.firstName = ""
 author.lastName = ""
-author.age = 0
-author.attributes64 = []
-author.height = 0
 author.birthday = "0001-01-01T00:00:00Z"
+author.attributes64 = []
+author.firstName = ""
+author.age = 0
+author.height = 0
 author.luckyNumbers = []
 author.likes = []
 author.registrationDates = []

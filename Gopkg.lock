@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/BurntSushi/toml"
-  packages = ["."]
-  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
-  version = "v0.3.0"
-
-[[projects]]
   name = "github.com/DATA-DOG/godog"
   packages = [
     ".",
@@ -17,9 +11,20 @@
   revision = "0371765570d36374bef4ab9f62ed0491f0862a3c"
   version = "v0.7.6"
 
+[[projects]]
+  name = "github.com/quoeamaster/CFactor"
+  packages = [
+    "TOML",
+    "common",
+    "interfaces",
+    "test/features/TOML"
+  ]
+  revision = "88dc6f6b3836d6b1071dcf96dc4d1297af6ee3cf"
+  version = "v0.1.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c90a3fcc22805332237929a03fd3caa4c135d6d9bd006d265c5da9276912dc02"
+  inputs-digest = "7e4c5df9435cb46882dbe57012fbb3df47327e79bb3fa607cd79daf42a34202a"
   solver-name = "gps-cdcl"
   solver-version = 1

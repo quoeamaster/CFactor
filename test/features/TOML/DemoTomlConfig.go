@@ -22,7 +22,7 @@ import (
 	"errors"
 	"strconv"
 	"time"
-	"CFactor/common"
+	"github.com/quoeamaster/CFactor/common"
 	"reflect"
 )
 
