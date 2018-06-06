@@ -592,6 +592,10 @@ func reloadTomlToMultiStruct(filename string) error {
 	if err != nil {
 		return err
 	}
+	// wait for 2 seconds so that the persist operation is fully done
+	// (file I/O is always the slowest operation in OS level)
+	time2.Sleep(100 * time2.Millisecond)
+
 	return nil
 }
 
