@@ -191,8 +191,9 @@ func setStructRefsToInterfaceByLifeCycleHooks(structRefMap *map[string]interface
 	methodVal := getLifeCycleHookMethodByName(interfaces.MethodSetStructsReference, object)
 	if !methodVal.IsValid() {
 		// TODO: sometimes the method is Invalid... why??
-		//return fmt.Errorf("unknown method [%v]", interfaces.MethodSetStructsReference)
-		fmt.Println("** somehow the method is invalid")
+		// fmt.Println("** somehow the method is invalid")
+		return fmt.Errorf("unknown method [%v]", interfaces.MethodSetStructsReference)
+		
 	} else {
 
 		methodValType := methodVal.Type()
