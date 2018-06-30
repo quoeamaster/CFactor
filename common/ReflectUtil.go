@@ -190,17 +190,21 @@ func setStructRefsToInterfaceByLifeCycleHooks(structRefMap *map[string]interface
 	// use the ugly approach to setStructs through relection + method invocation
 	methodVal := getLifeCycleHookMethodByName(interfaces.MethodSetStructsReference, object)
 	if !methodVal.IsValid() {
-		return fmt.Errorf("unknown method [%v]", interfaces.MethodSetStructsReference)
-	}
-	methodValType := methodVal.Type()
-	// create num of arguments
-	args := make([]reflect.Value, methodValType.NumIn())
-	args[0] = reflect.ValueOf(structRefMap)
-	outArgs := methodVal.Call(args)
+		// TODO: sometimes the method is Invalid... why??
+		//return fmt.Errorf("unknown method [%v]", interfaces.MethodSetStructsReference)
+		fmt.Println("** somehow the method is invalid")
+	} else {
 
-	if len(outArgs) > 0 {
-		if !outArgs[0].IsNil() {
-			return outArgs[0].Interface().(error)
+		methodValType := methodVal.Type()
+		// create num of arguments
+		args := make([]reflect.Value, methodValType.NumIn())
+		args[0] = reflect.ValueOf(structRefMap)
+		outArgs := methodVal.Call(args)
+
+		if len(outArgs) > 0 {
+			if !outArgs[0].IsNil() {
+				return outArgs[0].Interface().(error)
+			}
 		}
 	}
 	return nil
